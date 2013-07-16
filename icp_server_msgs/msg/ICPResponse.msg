@@ -1,0 +1,5 @@
+std_msgs/Header header
+sensor_msgs/PointCloud2 AlignedCloud
+geometry_msgs/Transform AlignmentTransform
+bool Converged
+float64 AlignmentFitness
