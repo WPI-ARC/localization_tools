@@ -14,9 +14,6 @@
 #
 ####################################################################################################
 
-import roslib
-roslib.load_manifest('tf')
-roslib.load_manifest('geometry_msgs')
 import rospy
 import math
 import numpy

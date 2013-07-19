@@ -74,7 +74,7 @@ include_directories(include
 
 ## Declare a cpp executable
 add_executable(icp_server_node src/icp_server_node.cpp)
-add_dependencies(icp_server_node icp_server_msgs_generate_messages_cpp)
+add_dependencies(icp_server_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(icp_server_node ${catkin_LIBRARIES})
 
 #############
