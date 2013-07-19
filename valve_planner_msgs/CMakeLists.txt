@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(planner_msgs)
+project(valve_planner_msgs)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -24,8 +24,8 @@ add_message_files(
   DIRECTORY
   msg
   FILES
-  ValvePlannerRequest.msg
-  ValvePlannerResponse.msg
+  PlannerRequest.msg
+  PlannerResponse.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -33,7 +33,7 @@ add_service_files(
   DIRECTORY
   srv
   FILES
-  ValvePlanner.srv
+  PlanTurning.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
