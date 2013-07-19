@@ -29,15 +29,17 @@ from icp_server_msgs.srv import *
 
 class ValveStatus:
 
-    UNSNAPPED = 0
-    SNAPPED = 1
-    SNAPPEDPLUS = 2
-    LEFT = 1
-    RIGHT = 2
-    BOTH = 3
-    ROUND = 0
-    LEFTLEVER = 1
-    RIGHTLEVER = 2
+    CW = "CW"
+    CCW = "CCW"
+    UNSNAPPED = 'UNSNSNAPPED'
+    SNAPPED = 'SNAPPED'
+    SNAPPEDPLUS = 'SNAPPEDPLUS'
+    LEFT = 'LH'
+    RIGHT = 'RH'
+    BOTH = 'BH'
+    ROUND = 'W'
+    LEFTLEVER = 'LL'
+    RIGHTLEVER = 'RL'
     READY = 'READY'
     PLANNING = 'PLANNING'
     PLANNED = 'PLANNED'
@@ -63,6 +65,7 @@ class ValveStatus:
         self.hands = self.BOTH
         self.valve_type = self.ROUND
         self.operating_status = self.READY
+        self.turning_direction = self.CW
         self.last_pointcloud = None
 
 class ValveLocalizer:
@@ -81,16 +84,16 @@ class ValveLocalizer:
             self.server.erase(marker_name)
         alignment_marker = self.make_alignment_imarker(self.status.pose_stamped)
         self.server.insert(alignment_marker, self.alignment_feedback_cb)
-        self.menu_handler.apply(self.server, "valve_status")
+        self.menu_handler.apply(self.server, "valve_alignment")
         self.server.applyChanges()
 
     def populate_menu(self):
-        self.options = ["Snap with ICP", "Export valve pose", "Increase radius by 0.5cm", "Decrease radius by 0.5cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER"]
+        self.options = ["Snap with ICP", "Export valve pose", "Increase radius by 2.5cm", "Decrease radius by 2.5cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "TURN VALVE COUNTERCLOCKWISE"]
         self.menu_handler = MenuHandler()
         i = 1
         for menu_option in self.options:
             print "Option ID: " + str(i) + " option: " + menu_option
-            self.menu_handler.insert(menu_option, callback=self.menu_feedback_cb)
+            self.menu_handler.insert(menu_option, callback=self.alignment_feedback_cb)
             i += 1
 
     def process_menu_select(self, menu_entry_id):
@@ -122,6 +125,10 @@ class ValveLocalizer:
             self.status.valve_type = self.status.LEFTLEVER
         elif (menu_entry_id == 14):
             self.status.valve_type = self.status.RIGHTLEVER
+        elif (menu_entry_id == 15):
+            self.status.turning_direction = self.status.CW
+        elif (menu_entry_id == 16):
+            self.status.turning_direction = self.status.CCW
         else:
             rospy.logerr("Unrecognized menu entry")
 
@@ -153,6 +160,24 @@ class ValveLocalizer:
         if (res != None):
             pose_adjustment = PoseFromTransform(res.Response.AlignmentTransform)
             self.status.pose_stamped = ComposePoses(self.status.pose_stamped.pose,pose_adjustment)
+
+    def call_planner(self):
+        req = ValvePlannerRequest()
+        req.Request.ValvePose = self.status.pose_stamped
+        req.Request.ValveSize = self.status.radius
+        req.Request.Hands = self.status.hands
+        req.Request.ValveType = self.status.valve_type
+        req.Request.Direction = self.status.turning_direction
+        res = None
+        try:
+            res = self.planner_client.call(req)
+            error_code = res.Response.ErrorCode
+            labels = res.Response.Labels
+            rospy.loginfo("Planner returned with error code: " + error_code + " | Labels: " + str(labels))
+        except:
+            res = None
+            rospy.logerr("Service call failed to connect. Is the planning server running?")
+            self.status.operating_status = self.status.ERROR
 
     def alignment_feedback_cb(self, feedback):
         cur_pose = feedback.pose
@@ -262,7 +287,7 @@ class ValveLocalizer:
         marker = Marker()
         marker.header.frame_id = marker_pose.header.frame_id
         #Give it a unique ID
-        marker.ns = "valve_status"
+        marker.ns = "valve_alignment"
         marker.id = 1
         #Give the marker a type
         if (self.status.valve_type == self.status.LEFTLEVER):
