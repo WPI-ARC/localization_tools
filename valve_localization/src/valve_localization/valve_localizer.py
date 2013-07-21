@@ -33,7 +33,7 @@ class ValveStatus:
 
     CW = "CW"
     CCW = "CCW"
-    UNSNAPPED = 'UNSNSNAPPED'
+    UNSNAPPED = 'UNSNAPPED'
     SNAPPED = 'SNAPPED'
     SNAPPEDPLUS = 'SNAPPEDPLUS'
     LEFT = 'LH'
@@ -78,16 +78,20 @@ class ValveLocalizer:
         self.status = ValveStatus()
         #Setup the interactive marker server
         self.server = InteractiveMarkerServer(self.marker_namespace)
-        self.update()
         rospy.loginfo("Connecting to planner...")
         self.planner_client = rospy.ServiceProxy(planner_service, PlanTurning)
         self.planner_client.wait_for_service()
         rospy.loginfo("...Connected to planner")
-        rospy.spin()
+        rate = rospy.Rate(20.0)
+        while not rospy.is_shutdown():
+            self.update()
+            rate.sleep()
 
     def update(self):
-        for marker_name in self.server.marker_contexts.keys():
-            self.server.erase(marker_name)
+        # This bugfix should have made it into Groovy
+        #for marker_name in self.server.marker_contexts.keys():
+        #    self.server.erase(marker_name)
+        self.server.clear()
         alignment_marker = self.make_alignment_imarker(self.status.pose_stamped)
         self.server.insert(alignment_marker, self.alignment_feedback_cb)
         self.menu_handler.apply(self.server, "valve_alignment")
@@ -200,7 +204,6 @@ class ValveLocalizer:
             self.process_menu_select(feedback.menu_entry_id)
         else:
             rospy.logerr("MENU Unrecognized feedback type - " + str(feedback.event_type))
-        self.update()
 
     def make_alignment_imarker(self, marker_pose):
         new_marker = InteractiveMarker()
