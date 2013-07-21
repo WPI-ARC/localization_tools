@@ -26,6 +26,8 @@ from shape_msgs.msg import *
 from transformation_helper import *
 from icp_server_msgs.msg import *
 from icp_server_msgs.srv import *
+from valve_planner_msgs.msg import *
+from valve_planner_msgs.srv import *
 
 class ValveStatus:
 
@@ -70,13 +72,17 @@ class ValveStatus:
 
 class ValveLocalizer:
 
-    def __init__(self, marker_namespace, data_dir):
+    def __init__(self, marker_namespace, data_dir, planner_service):
         self.marker_namespace = marker_namespace
         self.populate_menu()
         self.status = ValveStatus()
         #Setup the interactive marker server
         self.server = InteractiveMarkerServer(self.marker_namespace)
         self.update()
+        rospy.loginfo("Connecting to planner...")
+        self.planner_client = rospy.ServiceProxy(planner_service, PlanTurning)
+        self.planner_client.wait_for_service()
+        rospy.loginfo("...Connected to planner")
         rospy.spin()
 
     def update(self):
@@ -100,11 +106,11 @@ class ValveLocalizer:
         if (menu_entry_id == 1):
             print "Snapping with ICP!"
         elif (menu_entry_id == 2):
-            print "Exporting valve pose to planner"
+            self.call_planner()
         elif (menu_entry_id == 3):
-            self.status.radius += 0.05
+            self.status.radius += 0.025
         elif (menu_entry_id == 4):
-            self.status.radius += (-0.05)
+            self.status.radius += (-0.025)
         elif (menu_entry_id == 5):
             self.status.radius = self.status.default_radius
         elif (menu_entry_id == 6):
@@ -150,7 +156,6 @@ class ValveLocalizer:
         req.Request.InputType = req.Request.SHAPE
         req.Request.SolidPrimitive = SolidPrimitive()
         req.Request.SolidPrimitive.type = SolidPrimitive.CYLINDER
-
         res = None
         try:
             res = self.icp_client.call(req)
@@ -162,7 +167,7 @@ class ValveLocalizer:
             self.status.pose_stamped = ComposePoses(self.status.pose_stamped.pose,pose_adjustment)
 
     def call_planner(self):
-        req = ValvePlannerRequest()
+        req = PlanTurningRequest()
         req.Request.ValvePose = self.status.pose_stamped
         req.Request.ValveSize = self.status.radius
         req.Request.Hands = self.status.hands
@@ -170,10 +175,12 @@ class ValveLocalizer:
         req.Request.Direction = self.status.turning_direction
         res = None
         try:
+            rospy.loginfo("Sending call to planner with request: " + str(req))
             res = self.planner_client.call(req)
             error_code = res.Response.ErrorCode
             labels = res.Response.Labels
             rospy.loginfo("Planner returned with error code: " + error_code + " | Labels: " + str(labels))
+            self.status.operating_status = self.status.PLANNED
         except:
             res = None
             rospy.logerr("Service call failed to connect. Is the planning server running?")
@@ -331,8 +338,8 @@ class ValveLocalizer:
             rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
             marker.pose = rotated_pose
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x = self.status.radius
-            marker.scale.y = self.status.radius
+            marker.scale.x = (self.status.radius * 2.0)
+            marker.scale.y = (self.status.radius * 2.0)
             marker.scale.z = 0.05
         #Set the color -- be sure to set alpha to something non-zero!
         marker.color.r = 1.0
@@ -348,4 +355,5 @@ if __name__ == '__main__':
     path = path.strip("\n") + "/data"
     ims_namespace = rospy.get_param("~ims_namespace", "valve_localizer")
     data_dir = rospy.get_param("~data_dir", path)
-    ValveLocalizer(ims_namespace, data_dir)
+    planner_service = rospy.get_param("~planner_service", "valve_planner/drchubo_planner/PlanningQuery")
+    ValveLocalizer(ims_namespace, data_dir, planner_service)
