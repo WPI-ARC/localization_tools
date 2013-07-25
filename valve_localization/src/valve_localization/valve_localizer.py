@@ -51,6 +51,7 @@ class ValveStatus:
 
     def __init__(self):
         self.default_radius = 0.1
+        self.default_thickness = 0.02
         self.radius = self.default_radius
         self.default_pose_stamped = PoseStamped()
         self.default_pose_stamped.header.frame_id = "/Body_TSY"
@@ -347,7 +348,7 @@ class ValveLocalizer:
             rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
             marker.pose = rotated_pose
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x = 0.05
+            marker.scale.x = self.status.default_thickness
             marker.scale.y = self.status.radius
             marker.scale.z = 0.05
         else:
@@ -363,7 +364,7 @@ class ValveLocalizer:
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
             marker.scale.x = (self.status.radius * 2.0)
             marker.scale.y = (self.status.radius * 2.0)
-            marker.scale.z = 0.05
+            marker.scale.z = self.status.default_thickness
         #Set the color -- be sure to set alpha to something non-zero!
         marker.color.r = 1.0
         marker.color.b = 1.0
