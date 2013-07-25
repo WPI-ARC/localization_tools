@@ -34,6 +34,7 @@ add_service_files(
   srv
   FILES
   PlanTurning.srv
+  ExecuteTurning.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
