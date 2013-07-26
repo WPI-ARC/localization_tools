@@ -202,7 +202,7 @@ class ValveLocalizer:
         try:
             rospy.loginfo("Sending execute call")
             self.status.operating_status = self.status.EXECUTING
-            res = self.execution_client.cal(req)
+            res = self.execution_client.call(req)
             error_code = res.ErrorCode
             rospy.loginfo("Trajectories executed with error code: " + error_code)
             self.status.operating_status = self.status.EXECUTED
