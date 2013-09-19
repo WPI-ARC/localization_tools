@@ -101,7 +101,7 @@ class ValveLocalizer:
         self.server.applyChanges()
 
     def populate_menu(self):
-        self.options = ["Snap with ICP", "Call planner", "Execute plan", "Increase radius by 1.0cm", "Decrease radius by 1.0cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "TURN VALVE COUNTERCLOCKWISE"]
+        self.options = ["Snap with ICP", "Call planner", "Execute plan", "Increase radius by 1.0cm", "Decrease radius by 1.0cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "Turn valve COUNTERCLOCKWISE"]
         self.menu_handler = MenuHandler()
         i = 1
         for menu_option in self.options:
