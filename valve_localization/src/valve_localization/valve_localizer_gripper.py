@@ -658,7 +658,7 @@ class ValveLocalizer:
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
             marker.scale.x = self.status.default_thickness
             marker.scale.y = self.status.radius
-            marker.scale.z = 0.05S
+            marker.scale.z = 0.05
         else:
             marker.type = Marker.CYLINDER
             pose_offset = Pose()

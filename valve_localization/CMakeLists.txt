@@ -95,6 +95,7 @@ include_directories(include
 install(PROGRAMS
   src/valve_localization/valve_localizer.py
   src/valve_localization/valve_localizer_gripper.py
+  src/valve_localization/valve_localizer_gripper_no_planner.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
