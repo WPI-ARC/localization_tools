@@ -56,14 +56,16 @@ class ValveStatus:
     EXECUTE = "EXECUTE"
 
     def __init__(self):
-        self.default_radius = 0.1
+        self.default_radius = 0.203
         self.default_thickness = 0.02
         self.radius = self.default_radius
         self.default_pose_stamped = PoseStamped()
         self.default_pose_stamped.header.frame_id = "/Body_TSY"
-        self.default_pose_stamped.pose.position.x = 1.0
-        self.default_pose_stamped.pose.position.y = 0.0
-        self.default_pose_stamped.pose.position.z = 0.0
+        #self.default_pose_stamped.pose.position.x = 0.394 (distance from waist plate to valve)
+        #self.default_pose_stamped.pose.position.x = 0.07 (distance from TSY axis to waist plate)
+        self.default_pose_stamped.pose.position.x = 0.464
+        self.default_pose_stamped.pose.position.y = 0.01
+        self.default_pose_stamped.pose.position.z = -0.036
         self.default_pose_stamped.pose.orientation.x = 0.0
         self.default_pose_stamped.pose.orientation.y = 0.0
         self.default_pose_stamped.pose.orientation.z = 0.0
@@ -234,7 +236,8 @@ class ValveLocalizer:
         elif (event_type == feedback.MOUSE_UP):
             pass
         elif (event_type == feedback.POSE_UPDATE):
-            self.status.pose_stamped.pose = feedback.pose
+            pass
+            #self.status.pose_stamped.pose = feedback.pose
         elif (event_type == feedback.MENU_SELECT):
             rospy.loginfo("Menu feedback selection: " + self.options[feedback.menu_entry_id - 1])
             self.process_menu_select(feedback.menu_entry_id)
@@ -389,7 +392,7 @@ class ValveLocalizer:
         return marker
 
 if __name__ == '__main__':
-    rospy.init_node("valve_localizer")
+    rospy.init_node("demo_valve_localizer")
     path = subprocess.check_output("rospack find valve_localization", shell=True)
     path = path.strip("\n") + "/data"
     ims_namespace = rospy.get_param("~ims_namespace", "valve_localizer")

@@ -34,13 +34,13 @@ find_package(eigen REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  geometry_msgs
-  sensor_msgs
-  std_msgs
-  icp_server_msgs
-)
+#generate_messages(
+#  DEPENDENCIES
+#  geometry_msgs
+#  sensor_msgs
+#  std_msgs
+#  icp_server_msgs
+#)
 
 ###################################
 ## catkin specific configuration ##
