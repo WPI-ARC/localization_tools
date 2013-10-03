@@ -90,9 +90,9 @@ class ValveLocalizer:
         self.server = InteractiveMarkerServer(self.marker_namespace)
         rospy.loginfo("Connecting to planner...")
         self.planner_client = rospy.ServiceProxy(planner_service, PlanTurning)
-        #self.planner_client.wait_for_service()
+        self.planner_client.wait_for_service()
         self.execution_client = rospy.ServiceProxy(execution_service, ExecuteTurning)
-        #self.execution_client.wait_for_service()
+        self.execution_client.wait_for_service()
         rospy.loginfo("...Connected to planner")
         rate = rospy.Rate(20.0)
         while not rospy.is_shutdown():
