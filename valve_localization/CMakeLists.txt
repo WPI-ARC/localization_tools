@@ -94,6 +94,7 @@ include_directories(include
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
   src/valve_localization/valve_localizer.py
+  src/valve_localization/valve_localizer_gripper.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

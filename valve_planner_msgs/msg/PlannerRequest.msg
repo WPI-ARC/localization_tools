@@ -5,3 +5,7 @@ string ValveType
 string Hands
 string Direction
 string TaskStage
+bool useLeft
+bool useRight
+geometry_msgs/PoseStamped LeftPose
+geometry_msgs/PoseStamped RightPose
