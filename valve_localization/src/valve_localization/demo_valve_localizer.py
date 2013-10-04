@@ -236,8 +236,7 @@ class ValveLocalizer:
         elif (event_type == feedback.MOUSE_UP):
             pass
         elif (event_type == feedback.POSE_UPDATE):
-            pass
-            #self.status.pose_stamped.pose = feedback.pose
+            self.status.pose_stamped.pose = feedback.pose
         elif (event_type == feedback.MENU_SELECT):
             rospy.loginfo("Menu feedback selection: " + self.options[feedback.menu_entry_id - 1])
             self.process_menu_select(feedback.menu_entry_id)
