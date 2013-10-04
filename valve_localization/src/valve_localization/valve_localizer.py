@@ -50,6 +50,8 @@ class ValveStatus:
     ERROR = 'ERROR'
     IDLE = "IDLE"
     GETREADY = "GETREADY"
+    GRASP = "GRASP"
+    UNGRASP = "UNGRASP"
     TURN = "TURNVALVE"
     FINISH = "END"
     PREVIEW = "PREVIEW"
@@ -108,7 +110,7 @@ class ValveLocalizer:
         self.server.applyChanges()
 
     def populate_menu(self):
-        self.options = ["Snap with ICP", "Plan GETREADY", "Plan TURNING", "Plan FINISH", "Preview plan", "Execute plan", "Increase radius by 1.0cm", "Decrease radius by 1.0cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "Turn valve COUNTERCLOCKWISE"]
+        self.options = ["Snap with ICP", "Plan GETREADY", "Plan GRASP", "Plan UNGRASP", "Plan TURNING", "Plan FINISH", "Preview plan", "Execute plan", "Increase radius by 1.0cm", "Decrease radius by 1.0cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "Turn valve COUNTERCLOCKWISE"]
         self.menu_handler = MenuHandler()
         i = 1
         for menu_option in self.options:
@@ -122,40 +124,44 @@ class ValveLocalizer:
         elif (menu_entry_id == 2):
             self.call_planner(self.status.GETREADY)
         elif (menu_entry_id == 3):
-            self.call_planner(self.status.TURN)
+            self.call_planner(self.status.GRASP)
         elif (menu_entry_id == 4):
-            self.call_planner(self.status.FINISH)
+            self.call_planner(self.status.UNGRASP)
         elif (menu_entry_id == 5):
-            self.call_execute(self.status.PREVIEW)
+            self.call_planner(self.status.TURN)
         elif (menu_entry_id == 6):
-            self.call_execute(self.status.EXECUTE)
-        elif (menu_entry_id ==7):
-            self.status.radius += 0.01
+            self.call_planner(self.status.FINISH)
+        elif (menu_entry_id == 7):
+            self.call_execute(self.status.PREVIEW)
         elif (menu_entry_id == 8):
-            self.status.radius += (-0.01)
+            self.call_execute(self.status.EXECUTE)
         elif (menu_entry_id == 9):
-            self.status.radius = self.status.default_radius
+            self.status.radius += 0.01
         elif (menu_entry_id == 10):
-            self.status.pose_stamped = deepcopy(self.status.default_pose_stamped)
+            self.status.radius += (-0.01)
         elif (menu_entry_id == 11):
-            self.status.pose_stamped = deepcopy(self.status.session_pose_stamped)
+            self.status.radius = self.status.default_radius
         elif (menu_entry_id == 12):
-            self.status.session_pose_stamped = deepcopy(self.status.pose_stamped)
+            self.status.pose_stamped = deepcopy(self.status.default_pose_stamped)
         elif (menu_entry_id == 13):
-            self.status.hands = self.status.LEFT
+            self.status.pose_stamped = deepcopy(self.status.session_pose_stamped)
         elif (menu_entry_id == 14):
-            self.status.hands = self.status.RIGHT
+            self.status.session_pose_stamped = deepcopy(self.status.pose_stamped)
         elif (menu_entry_id == 15):
-            self.status.hands = self.status.BOTH
+            self.status.hands = self.status.LEFT
         elif (menu_entry_id == 16):
-            self.status.valve_type = self.status.ROUND
+            self.status.hands = self.status.RIGHT
         elif (menu_entry_id == 17):
-            self.status.valve_type = self.status.LEFTLEVER
+            self.status.hands = self.status.BOTH
         elif (menu_entry_id == 18):
-            self.status.valve_type = self.status.RIGHTLEVER
+            self.status.valve_type = self.status.ROUND
         elif (menu_entry_id == 19):
-            self.status.turning_direction = self.status.CW
+            self.status.valve_type = self.status.LEFTLEVER
         elif (menu_entry_id == 20):
+            self.status.valve_type = self.status.RIGHTLEVER
+        elif (menu_entry_id == 21):
+            self.status.turning_direction = self.status.CW
+        elif (menu_entry_id == 22):
             self.status.turning_direction = self.status.CCW
         else:
             rospy.logerr("Unrecognized menu entry")
