@@ -61,6 +61,8 @@ class ValveStatus:
     IDLE = "IDLE"
     GETREADY = "GETREADY"
     TURN = "TURNVALVE"
+    GRASP = "GRASP"
+    UNGRASP = "UNGRASP"
     FINISH = "END"
     PREVIEW = "PREVIEW"
     EXECUTE = "EXECUTE"
@@ -88,6 +90,7 @@ class ValveStatus:
         self.last_pointcloud = None
         self.planning_status = self.IDLE
         self.visible = True
+        self.color = "PURPLE"
 
 # Left RED, right GREEN, none BLUE
 class GripperStatus:
@@ -117,8 +120,8 @@ class ValveLocalizer:
         rospy.Subscriber("valve_localization/show", Bool, self.show_tool)
 
         #Setup The Valve and Valve Marker
-        self.populate_menu()
-        self.status = ValveStatus()
+        self.populate_valve_menu()
+        self.valve_status = ValveStatus()
 
         #Setup the interactive marker server
         self.server = InteractiveMarkerServer(self.marker_namespace)
@@ -139,7 +142,7 @@ class ValveLocalizer:
             self.gripper_status.name.append("gripper_alignment" + str(x))
             self.gripper_status.angle.append(0.0)
             self.gripper_status.length.append(.1)
-            self.gripper_status.visible.append(False)
+            self.gripper_status.visible.append(True)
 
             if x == 0: self.gripper_status.circ_angle.append(math.pi / 2)
             if x == 1: self.gripper_status.circ_angle.append((3 * math.pi) / 2)
@@ -153,11 +156,10 @@ class ValveLocalizer:
 
 
     def show_tool(self, data):
-        self.status.visible = data.data
+        self.valve_status.visible = data.data
 
-        if data.data == False:
-            for x in range (0, self.gripper_status.max_markers):
-                self.gripper_status.visible[x] = data.data
+        for x in range (0, self.gripper_status.max_markers):
+            self.gripper_status.visible[x] = data.data
 
 
     def update(self):
@@ -166,14 +168,14 @@ class ValveLocalizer:
         #    self.server.erase(marker_name)
         self.server.clear()
 
-        if self.status.visible == True:
-            alignment_marker = self.make_alignment_imarker(self.status.pose_stamped)
+        if self.valve_status.visible == True:
+            alignment_marker = self.make_valve_imarker(self.valve_status.pose_stamped)
             self.server.insert(alignment_marker, self.alignment_feedback_cb)
             self.menu_handler.apply(self.server, "valve_alignment")
 
         for x in range (0, self.gripper_status.max_markers):
             if self.gripper_status.visible[x]:
-                gripper_marker_2 = self.make_gripper_imarker(self.status.pose_stamped, x)
+                gripper_marker_2 = self.make_gripper_imarker(self.valve_status.pose_stamped, x)
                 self.server.insert(gripper_marker_2, self.gripper_feedback_cb)
                 self.gripper_menu_handler.apply(self.server, "gripper_alignment" + str(x))
 
@@ -183,19 +185,19 @@ class ValveLocalizer:
 
 
     def call_icp(self):
-        if (self.status.last_pointcloud == None):
+        if (self.valve_status.last_pointcloud == None):
             rospy.logerr("No pointcloud available for using ICP")
             return
         req = RunICPRequest()
         # Set the target pointcloud
-        req.Request.TargetPointCloud = self.status.last_pointcloud
+        req.Request.TargetPointCloud = self.valve_status.last_pointcloud
         # Set the origin of the bounding box
         req.Request.UseBoundingVolume = True
         req.Request.BoundingVolumeOrigin = valve_in_sensor_frame_transform
         # Set the bounding box size
-        req.Request.BoundingVolumeDimensions.x = self.status.radius * 3.0
-        req.Request.BoundingVolumeDimensions.y = self.status.radius * 3.0
-        req.Request.BoundingVolumeDimensions.z = self.status.radius * 3.0
+        req.Request.BoundingVolumeDimensions.x = self.valve_status.radius * 3.0
+        req.Request.BoundingVolumeDimensions.y = self.valve_status.radius * 3.0
+        req.Request.BoundingVolumeDimensions.z = self.valve_status.radius * 3.0
         # Set the input pointcloud
         req.Request.InputType = req.Request.SHAPE
         req.Request.SolidPrimitive = SolidPrimitive()
@@ -208,25 +210,25 @@ class ValveLocalizer:
             rospy.logerr("Service call failed to connect. Is the ICP server running?")
         if (res != None):
             pose_adjustment = PoseFromTransform(res.Response.AlignmentTransform)
-            self.status.pose_stamped = ComposePoses(self.status.pose_stamped.pose,pose_adjustment)
+            self.valve_status.pose_stamped = ComposePoses(self.valve_status.pose_stamped.pose,pose_adjustment)
 
 
 
 
     def call_planner(self, stage):
-        self.status.planning_status = stage
+        self.valve_status.planning_status = stage
         req = PlanTurningRequest()
-        req.Request.ValvePose = self.status.pose_stamped
-        req.Request.ValveSize = self.status.radius
-        req.Request.Hands = self.status.hands
-        req.Request.ValveType = self.status.valve_type
-        req.Request.Direction = self.status.turning_direction
-        req.Request.TaskStage = self.status.planning_status
+        req.Request.ValvePose = self.valve_status.pose_stamped
+        req.Request.ValveSize = self.valve_status.radius
+        req.Request.Hands = self.valve_status.hands
+        req.Request.ValveType = self.valve_status.valve_type
+        req.Request.Direction = self.valve_status.turning_direction
+        req.Request.TaskStage = self.valve_status.planning_status
 
-        req.useLeft = True
-        req.useRight = True
-        req.leftPoseStamped = self.gripper_status.leftPoseStamped
-        req.rightPoseStamped = self.gripper_status.rightPoseStamped
+        req.Request.useLeft = True
+        req.Request.useRight = True
+        req.Request.LeftPose = self.gripper_status.leftPoseStamped
+        req.Request.RightPose = self.gripper_status.rightPoseStamped
 
         res = None
         try:
@@ -235,11 +237,11 @@ class ValveLocalizer:
             error_code = res.Response.ErrorCode
             labels = res.Response.Labels
             rospy.loginfo("Planner returned with error code: " + error_code + " | Labels: " + str(labels))
-            self.status.operating_status = self.status.PLANNED
+            self.valve_status.operating_status = self.valve_status.PLANNED
         except:
             res = None
             rospy.logerr("Service call failed to connect. Is the planning server running?")
-            self.status.operating_status = self.status.ERROR
+            self.valve_status.operating_status = self.valve_status.ERROR
 
 
 
@@ -250,15 +252,15 @@ class ValveLocalizer:
         res = None
         try:
             rospy.loginfo("Sending execute call")
-            self.status.operating_status = self.status.EXECUTING
+            self.valve_status.operating_status = self.valve_status.EXECUTING
             res = self.execution_client.call(req)
             error_code = res.ErrorCode
             rospy.loginfo("Trajectories executed with error code: " + error_code)
-            self.status.operating_status = self.status.EXECUTED
+            self.valve_status.operating_status = self.valve_status.EXECUTED
         except:
             res = None
             rospy.logerr("Service call failed to connect. Is the execution server running?")
-            self.status.operating_status = self.status.ERROR
+            self.valve_status.operating_status = self.valve_status.ERROR
 
 
 
@@ -268,14 +270,226 @@ class ValveLocalizer:
 #   Valve Menu Stuff             #
 ##################################
 
-    def populate_menu(self):
-        self.options = ["Snap with ICP", "Plan GETREADY", "Plan TURNING", "Plan FINISH", "Preview plan", "Execute plan", "Increase radius by 1.0cm", "Decrease radius by 1.0cm", "Reset to default radius", "Reset to default pose", "Reset to session default pose", "Set session default pose", "Use LEFT hand", "Use RIGHT hand", "Use BOTH hands", "Set valve type to ROUND", "Set valve type to LEFT LEVER", "Set valve type to RIGHT LEVER", "Turn valve CLOCKWISE", "Turn valve COUNTERCLOCKWISE", "Make Gripper Position"]
+
+
+    def populate_valve_menu(self):
+
+        global snap_icp
+        global planning_master, planning_getready, planning_turning, planning_finish, planning_preview, planning_grasp, planning_ungrasp
+        global execute_master
+        global radius_master, radius_increase, radius_decrease, radius_default
+        global pose_master, pose_reset_default, pose_reset_session_defaul, pose_set_default
+        global hand_master, hand_left, hand_right, hand_both
+        global type_master, type_round, type_left, type_right
+        global direction_master, direction_cw, direction_ccw
+
         self.menu_handler = MenuHandler()
-        i = 1
-        for menu_option in self.options:
-            print "Option ID: " + str(i) + " option: " + menu_option
-            self.menu_handler.insert(menu_option, callback=self.alignment_feedback_cb)
-            i += 1
+
+        #Snap with ICP
+        snap_icp = self.menu_handler.insert("Snap With ICP", callback = self.snap_icp_cb)
+
+        #Planning Options
+        planning_master = self.menu_handler.insert("Planning", callback = self.planning_cb)
+        planning_getready = self.menu_handler.insert("Plan GETREADY", parent = planning_master, callback = self.planning_cb)
+        planning_grasp = self.menu_handler.insert("Plan GRASP", parent = planning_master, callback = self.planning_cb)
+        planning_ungrasp = self.menu_handler.insert("Plan UNGRASP", parent = planning_master, callback = self.planning_cb)
+        planning_turning = self.menu_handler.insert("Plan TURNING", parent = planning_master, callback = self.planning_cb)
+        planning_finish = self.menu_handler.insert("Plan FINISH", parent = planning_master, callback = self.planning_cb)
+        planning_preview = self.menu_handler.insert("Preview Plan", parent = planning_master, callback = self.planning_cb)
+
+        #Execute Options
+        execute_master = self.menu_handler.insert("Execute", callback = self.execute_cb)
+
+        #Radius Options
+        radius_master = self.menu_handler.insert("Radius", callback = self.radius_cb)
+        radius_increase = self.menu_handler.insert("Increase Radius", parent = radius_master, callback = self.radius_cb)
+        radius_decrease = self.menu_handler.insert("Decrease Radius", parent = radius_master, callback = self.radius_cb)
+        radius_default = self.menu_handler.insert("Default Radius", parent = radius_master, callback = self.radius_cb)
+
+        #Pose Options
+        pose_master = self.menu_handler.insert("Pose", callback = self.pose_cb)
+        pose_reset_default = self.menu_handler.insert("Reset Default Pose", parent = pose_master, callback = self.pose_cb)
+        pose_reset_session_default = self.menu_handler.insert("Reset Session Default", parent = pose_master, callback = self.pose_cb)
+        pose_set_default = self.menu_handler.insert("Set Default Pose", parent = pose_master, callback = self.pose_cb)
+
+        #Hand Options
+        hand_master = self.menu_handler.insert("Hand", callback = self.hand_cb)
+        hand_left = self.menu_handler.insert("Left Hand", parent = hand_master, callback = self.hand_cb)
+        hand_right = self.menu_handler.insert("Right Hand", parent = hand_master, callback = self.hand_cb)
+        hand_both = self.menu_handler.insert("Both Hands", parent = hand_master, callback = self.hand_cb)
+
+        #Type Options
+        type_master = self.menu_handler.insert("Valve Type", callback = self.type_cb)
+        type_round = self.menu_handler.insert("Round", parent = type_master, callback = self.type_cb)
+        type_left = self.menu_handler.insert("Left Lever", parent=type_master, callback = self.type_cb)
+        type_right = self.menu_handler.insert("Right Lever", parent=type_master, callback = self.type_cb)
+
+        #Turning Options
+        direction_master = self.menu_handler.insert("Turn Direction", callback = self.direction_cb)
+        direction_cw = self.menu_handler.insert("Turn Clockwise", parent = direction_master, callback = self.direction_cb)
+        direction_ccw = self.menu_handler.insert("Turn Counter-Clockwise", parent = direction_master, callback = self.direction_cb)
+
+
+
+    def snap_icp_cb(self, feedback):
+        print "Snapping with ICP"
+        self.valve_status.color = "PURPLE"
+
+
+
+    def planning_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        if handle == planning_getready:
+            self.valve_status.color = "RED"
+            self.call_planner(self.valve_status.GETREADY)
+            self.valve_status.color = "GREEN"
+
+        elif handle == planning_grasp:
+            self.valve_status.color = "RED"
+            self.call_planner(self.valve_status.GRASP)
+            self.valve_status.color = "GREEN"
+
+        elif handle == planning_ungrasp:
+            self.valve_status.color = "RED"
+            self.call_planner(self.valve_Status.UNGRASP)
+            self.valve_status.color = "GREEN"
+
+        elif handle == planning_turning:
+            self.valve_status.color = "RED"
+            self.call_planner(self.valve_status.FINISH)
+            self.valve_status.color = "GREEN"
+
+        elif handle == planning_finish:
+            self.valve_status.color = "RED"
+            self.valve_status.hands = self.valve_status.BOTH
+            self.valve_status.color = "GREEN"
+
+        elif handle == planning_preview:
+            self.valve_status.color = "RED"
+            self.call_execute(self.valve_status.PREVIEW)
+            self.valve_status.color = "GREEN"
+
+        else:
+            rospy.roswarn("Planning > Unknown Plan Clicked!")
+
+
+
+    def execute_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        if handle == execute_master:
+            print "Executing Previous Plan"
+            self.valve_status.color = "RED"
+            self.call_execute(self.valve_status.EXECUTE)
+            self.valve_status.color = "GREEN"
+
+        else:
+            rospy.roswarn("Unknown Execution Clicked!")
+
+
+
+    def radius_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        self.valve_status.color = "PURPLE"
+
+        if handle == radius_increase:
+            self.valve_status.radius += 0.01
+
+        elif handle == radius_decrease:
+            self.valve_status.radius += (-0.01)
+
+        elif handle == radius_default:
+            self.valve_status.radius = self.valve_status.default_radius
+
+        else:
+            rospy.roswarn("Radius > Unknown Radius Clicked!")
+
+
+
+    def pose_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        self.valve_status.color = "PURPLE"
+
+        if handle == pose_reset_default:
+            self.valve_status.pose_stamped = deepcopy(self.valve_status.default_pose_stamped)
+
+        elif handle == pose_reset_session_defaul:
+            self.valve_status.pose_stamped = deepcopy(self.valve_status.session_pose_stamped)
+
+        elif handle == pose_set_default:
+            self.valve_status.session_pose_stamped = deepcopy(self.valve_status.pose_stamped)
+
+        else:
+            rospy.roswarn("Pose > Unknown Pose Clicked!")
+
+
+
+    def hand_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        self.valve_status.color = "PURPLE"
+
+        if handle == hand_left:
+            self.valve_status.hands = self.valve_status.LEFT
+
+        elif handle == hand_right:
+            self.valve_status.hands = self.valve_status.RIGHT
+
+        elif handle == hand_both:
+            self.valve_status.hands = self.valve_status.BOTH
+
+        else:
+            rospy.roswarn("Hand > Unknown Hand Clicked!")
+
+
+
+    def type_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        self.valve_status.color = "PURPLE"
+
+        if handle == type_round:
+            self.valve_status.valve_type = self.valve_status.ROUND
+
+        elif handle == type_left:
+            self.valve_status.valve_type = self.valve_status.LEFTLEVER
+
+        elif handle == type_right:
+            self.valve_status.valve_type = self.valve_status.RIGHTLEVER
+
+        else:
+            rospy.roswarn("Type > Unknown Type Clicked!")
+
+
+
+    def direction_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        self.valve_status.color = "PURPLE"
+
+        if handle == direction_cw:
+            self.valve_status.turning_direction = self.valve_status.CW
+
+        elif handle == direction_ccw:
+            self.valve_status.turning_direction = self.valve_status.CCW
+
+        else:
+            rospy.roswarn("Direction > Unknown Direction Clicked!")
+
+
+
+
+
 
     def alignment_feedback_cb(self, feedback):
         cur_pose = feedback.pose
@@ -285,59 +499,12 @@ class ValveLocalizer:
         elif (event_type == feedback.MOUSE_UP):
             pass
         elif (event_type == feedback.POSE_UPDATE):
-            self.status.pose_stamped.pose = feedback.pose
+            self.valve_status.pose_stamped.pose = feedback.pose
         elif (event_type == feedback.MENU_SELECT):
-            rospy.loginfo("Menu feedback selection: " + self.options[feedback.menu_entry_id - 1])
-            self.process_menu_select(feedback.menu_entry_id)
+            pass
         else:
-            rospy.logerr("MENU Unrecognized feedback type - " + str(feedback.event_type))
+            rospy.logerr("Unrecognized feedback type - " + str(feedback.event_type))
 
-    def process_menu_select(self, menu_entry_id):
-        if (menu_entry_id == 1):
-            print "Snapping with ICP!"
-        elif (menu_entry_id == 2):
-            self.call_planner(self.status.GETREADY)
-        elif (menu_entry_id == 3):
-            self.call_planner(self.status.TURN)
-        elif (menu_entry_id == 4):
-            self.call_planner(self.status.FINISH)
-        elif (menu_entry_id == 5):
-            self.call_execute(self.status.PREVIEW)
-        elif (menu_entry_id == 6):
-            self.call_execute(self.status.EXECUTE)
-        elif (menu_entry_id ==7):
-            self.status.radius += 0.01
-        elif (menu_entry_id == 8):
-            self.status.radius += (-0.01)
-        elif (menu_entry_id == 9):
-            self.status.radius = self.status.default_radius
-        elif (menu_entry_id == 10):
-            self.status.pose_stamped = deepcopy(self.status.default_pose_stamped)
-        elif (menu_entry_id == 11):
-            self.status.pose_stamped = deepcopy(self.status.session_pose_stamped)
-        elif (menu_entry_id == 12):
-            self.status.session_pose_stamped = deepcopy(self.status.pose_stamped)
-        elif (menu_entry_id == 13):
-            self.status.hands = self.status.LEFT
-        elif (menu_entry_id == 14):
-            self.status.hands = self.status.RIGHT
-        elif (menu_entry_id == 15):
-            self.status.hands = self.status.BOTH
-        elif (menu_entry_id == 16):
-            self.status.valve_type = self.status.ROUND
-        elif (menu_entry_id == 17):
-            self.status.valve_type = self.status.LEFTLEVER
-        elif (menu_entry_id == 18):
-            self.status.valve_type = self.status.RIGHTLEVER
-        elif (menu_entry_id == 19):
-            self.status.turning_direction = self.status.CW
-        elif (menu_entry_id == 20):
-            self.status.turning_direction = self.status.CCW
-        elif (menu_entry_id == 21):
-            for x in range (0, self.gripper_status.max_markers):
-                self.gripper_status.visible[x] = True
-        else:
-            rospy.logerr("Unrecognized menu entry")
 
 
 
@@ -417,40 +584,37 @@ class ValveLocalizer:
 #   Stuff For Making a Gripper   #
 ##################################
 
-    def make_gripper_imarker(self, marker_pose, marker_id):
-        gripper_marker = InteractiveMarker()
-        gripper_marker.header.frame_id = marker_pose.header.frame_id
-        gripper_marker.pose = marker_pose.pose
-        gripper_marker.scale = self.gripper_status.length[marker_id] * .75
-        gripper_marker.name = 'gripper_alignment'+str(marker_id)
+    def make_gripper_imarker(self, gripper_pose, gripper_id):
 
-        #Make the Default Control that will be built off of
-        #base_control = InteractiveMarkerControl()
-        #base_control.orientation_mode = InteractiveMarkerControl.FIXED
-        #base_control.always_visible = True
-        gripper_display_marker = self.make_gripper_marker(marker_pose, marker_id)
-        #base_control.markers.append(gripper_display_marker)
-        #gripper_marker.controls.append(base_control)
+        #Make the Interactive Marker for each gripper
+        gripper_imarker = InteractiveMarker()
+        gripper_imarker.header.frame_id = gripper_pose.header.frame_id
+        gripper_imarker.pose = gripper_pose.pose
+        gripper_imarker.scale = self.gripper_status.length[gripper_id] * .75
+        gripper_imarker.name = 'gripper_alignment'+str(gripper_id)
+
+        
+        gripper_marker = self.make_gripper_marker(gripper_pose, gripper_id)
 
         # Make the menu control for the gripper marker
         gripper_menu_control = InteractiveMarkerControl()
         gripper_menu_control.interaction_mode = InteractiveMarkerControl.MENU
         gripper_menu_control.always_visible = True
         gripper_menu_control.orientation_mode = InteractiveMarkerControl.FIXED
-        gripper_menu_control.markers.append(gripper_display_marker)
-        gripper_marker.controls.append(gripper_menu_control)
+        gripper_menu_control.markers.append(gripper_marker)
+        gripper_imarker.controls.append(gripper_menu_control)
 
-        return gripper_marker
+        return gripper_imarker
 
 
 
-    def make_gripper_marker(self, marker_pose, marker_id):
+    def make_gripper_marker(self, gripper_pose, gripper_id):
         gripper = Marker()
-        gripper.header.frame_id = marker_pose.header.frame_id
+        gripper.header.frame_id = gripper_pose.header.frame_id
 
         #Give it a unique ID
-        gripper.ns = "gripper_alignment" + str(marker_id)
-        gripper.id = marker_id
+        gripper.ns = "gripper_alignment" + str(gripper_id)
+        gripper.id = gripper_id
         gripper.type = Marker.ARROW
         pose_offset = Pose()
 
@@ -460,13 +624,11 @@ class ValveLocalizer:
         pose_offset.orientation.y = q1[1]
         pose_offset.orientation.z = q1[2]
         pose_offset.orientation.w = q1[3]
-        rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
+        rotated_pose = ComposePoses(gripper_pose.pose, pose_offset)
         gripper.pose = rotated_pose
 
         # Rotate the Arrow around the center of the wheel
-
-        #delta = (2 * math.pi) / self.gripper_status.max_markers
-        angle_rad = self.gripper_status.circ_angle[marker_id]
+        angle_rad = self.gripper_status.circ_angle[gripper_id]
         q1 = quaternion_about_axis(angle_rad, (0,0,1))
 
         pose_offset.orientation.x = q1[0]
@@ -478,13 +640,14 @@ class ValveLocalizer:
 
         # Rotate the grip angle while keeping the point on the wheel
 
-        angle_rad = self.gripper_status.angle[marker_id]
+        angle_rad = self.gripper_status.angle[gripper_id]
 
         q1 = quaternion_about_axis(angle_rad, (0,1,0))
 
-        pose_offset.position.x = (-1 * self.status.radius * 2) + (self.status.radius - self.gripper_status.length[marker_id] * cos(angle_rad))
+        pose_offset.position.x = (-1 * self.valve_status.radius * 2) + \
+        (self.valve_status.radius - self.gripper_status.length[gripper_id] * cos(angle_rad))
 
-        pose_offset.position.z = self.gripper_status.length[marker_id] * sin(angle_rad)
+        pose_offset.position.z = self.gripper_status.length[gripper_id] * sin(angle_rad)
         pose_offset.orientation.x = q1[0]
         pose_offset.orientation.y = q1[1]
         pose_offset.orientation.z = q1[2]
@@ -492,28 +655,29 @@ class ValveLocalizer:
         rotated_pose = ComposePoses(gripper.pose, pose_offset)
         gripper.pose = rotated_pose
 
-        if marker_id == self.gripper_status.current_left:
-            self.gripper_status.leftPoseStamped.header.frame_id = self.status.default_pose_stamped.header.frame_id
+        #Create the messages for the left and right that can be sent out
+        if gripper_id == self.gripper_status.current_left:
+            self.gripper_status.leftPoseStamped.header.frame_id = \
+                          self.valve_status.default_pose_stamped.header.frame_id
             self.gripper_status.leftPoseStamped.pose = gripper.pose
 
-        if marker_id == self.gripper_status.current_right:
-            self.gripper_status.rightPoseStamped.header.frame_id = self.status.default_pose_stamped.header.frame_id
+        if gripper_id == self.gripper_status.current_right:
+            self.gripper_status.rightPoseStamped.header.frame_id = \
+                          self.valve_status.default_pose_stamped.header.frame_id
             self.gripper_status.rightPoseStamped.pose = gripper.pose
 
-        ###################################################
 
         #Set the scale of the marker -- 1x1x1 here means 1m on a side
-        gripper.scale.x = (self.gripper_status.length[marker_id])
+        gripper.scale.x = (self.gripper_status.length[gripper_id])
         gripper.scale.y = (.02)
         gripper.scale.z = (.02)
 
         #Set the color -- be sure to set alpha to something non-zero!
-
-        if self.gripper_status.current_left == marker_id:
+        if self.gripper_status.current_left == gripper_id:
             gripper.color.r = 1.0
             gripper.color.b = 0.0
             gripper.color.g = 0.0
-        elif self.gripper_status.current_right == marker_id:
+        elif self.gripper_status.current_right == gripper_id:
             gripper.color.r = 0.0
             gripper.color.b = 0.0
             gripper.color.g = 1.0
@@ -534,26 +698,29 @@ class ValveLocalizer:
 
 
 
-    def make_alignment_imarker(self, marker_pose):
-        new_marker = InteractiveMarker()
-        new_marker.header.frame_id = marker_pose.header.frame_id
-        new_marker.pose = marker_pose.pose
-        new_marker.scale = 1.0
-        new_marker.name = 'valve_alignment'
+    def make_valve_imarker(self, valve_pose):
+        valve_imarker = InteractiveMarker()
+        valve_imarker.header.frame_id = valve_pose.header.frame_id
+        valve_imarker.pose = valve_pose.pose
+        valve_imarker.scale = 1.0
+        valve_imarker.name = 'valve_alignment'
+
         # Make the default control for the marker itself
         base_control = InteractiveMarkerControl()
         base_control.orientation_mode = InteractiveMarkerControl.FIXED
         base_control.always_visible = True
-        display_marker = self.make_valve_marker(marker_pose)
-        base_control.markers.append(display_marker)
-        new_marker.controls.append(base_control)
+        valve_marker = self.make_valve_marker(valve_pose)
+        base_control.markers.append(valve_marker)
+        valve_imarker.controls.append(base_control)
+
         # Make the menu control
         new_control = InteractiveMarkerControl()
         new_control.interaction_mode = InteractiveMarkerControl.MENU
         new_control.always_visible = True
         new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.markers.append(display_marker)
-        new_marker.controls.append(new_control)
+        new_control.markers.append(valve_marker)
+        valve_imarker.controls.append(new_control)
+
         # Make the x-axis control
         new_control = InteractiveMarkerControl()
         new_control.name = "translate_x"
@@ -564,7 +731,8 @@ class ValveLocalizer:
         new_control.orientation.x = 1.0
         new_control.orientation.y = 0.0
         new_control.orientation.z = 0.0
-        new_marker.controls.append(new_control)
+        valve_imarker.controls.append(new_control)
+
         # Make the y-axis control
         new_control = InteractiveMarkerControl()
         new_control.name = "translate_y"
@@ -575,7 +743,8 @@ class ValveLocalizer:
         new_control.orientation.x = 0.0
         new_control.orientation.y = 1.0
         new_control.orientation.z = 0.0
-        new_marker.controls.append(new_control)
+        valve_imarker.controls.append(new_control)
+
         # Make the z-axis control
         new_control = InteractiveMarkerControl()
         new_control.name = "translate_z"
@@ -586,7 +755,8 @@ class ValveLocalizer:
         new_control.orientation.x = 0.0
         new_control.orientation.y = 0.0
         new_control.orientation.z = 1.0
-        new_marker.controls.append(new_control)
+        valve_imarker.controls.append(new_control)
+
         # Make the x-axis rotation control
         new_control = InteractiveMarkerControl()
         new_control.name = "rotate_x"
@@ -597,7 +767,8 @@ class ValveLocalizer:
         new_control.orientation.x = 1.0
         new_control.orientation.y = 0.0
         new_control.orientation.z = 0.0
-        new_marker.controls.append(new_control)
+        valve_imarker.controls.append(new_control)
+
         # Make the y-axis control
         new_control = InteractiveMarkerControl()
         new_control.name = "rotate_y"
@@ -608,7 +779,8 @@ class ValveLocalizer:
         new_control.orientation.x = 0.0
         new_control.orientation.y = 1.0
         new_control.orientation.z = 0.0
-        new_marker.controls.append(new_control)
+        valve_imarker.controls.append(new_control)
+
         # Make the z-axis control
         new_control = InteractiveMarkerControl()
         new_control.name = "rotate_z"
@@ -619,67 +791,83 @@ class ValveLocalizer:
         new_control.orientation.x = 0.0
         new_control.orientation.y = 0.0
         new_control.orientation.z = 1.0
-        new_marker.controls.append(new_control)
-        return new_marker
+        valve_imarker.controls.append(new_control)
 
-    def make_valve_marker(self, marker_pose):
-        marker = Marker()
-        marker.header.frame_id = marker_pose.header.frame_id
+        return valve_imarker
+
+    def make_valve_marker(self, valve_pose):
+        valve = Marker()
+        valve.header.frame_id = valve_pose.header.frame_id
         #Give it a unique ID
-        marker.ns = "valve_alignment"
-        marker.id = 1
-        #Give the marker a type
-        if (self.status.valve_type == self.status.LEFTLEVER):
-            marker.type = Marker.CUBE
+        valve.ns = "valve_alignment"
+        valve.id = 1
+
+        #Give the valve a type
+        if (self.valve_status.valve_type == self.valve_status.LEFTLEVER):
+            valve.type = Marker.CUBE
             pose_offset = Pose()
-            pose_offset.position.y = -(self.status.radius /2.0)
+            pose_offset.position.y = -(self.valve_status.radius /2.0)
             q1 = quaternion_about_axis(math.pi / 2.0, (0,1,0))
             pose_offset.orientation.x = q1[0]
             pose_offset.orientation.y = q1[1]
             pose_offset.orientation.z = q1[2]
             pose_offset.orientation.w = q1[3]
-            rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
-            marker.pose = rotated_pose
+            rotated_pose = ComposePoses(valve_pose.pose, pose_offset)
+            valve.pose = rotated_pose
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x = 0.05
-            marker.scale.y = self.status.radius
-            marker.scale.z = 0.05
-        elif (self.status.valve_type == self.status.RIGHTLEVER):
-            marker.type = Marker.CUBE
+            valve.scale.x = 0.05
+            valve.scale.y = self.valve_status.radius
+            valve.scale.z = 0.05
+
+        elif (self.valve_status.valve_type == self.valve_status.RIGHTLEVER):
+            valve.type = Marker.CUBE
             pose_offset = Pose()
-            pose_offset.position.y = (self.status.radius /2.0)
+            pose_offset.position.y = (self.valve_status.radius /2.0)
             q1 = quaternion_about_axis(math.pi / 2.0, (0,1,0))
             pose_offset.orientation.x = q1[0]
             pose_offset.orientation.y = q1[1]
             pose_offset.orientation.z = q1[2]
             pose_offset.orientation.w = q1[3]
-            rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
-            marker.pose = rotated_pose
+            rotated_pose = ComposePoses(valve_pose.pose, pose_offset)
+            valve.pose = rotated_pose
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x = self.status.default_thickness
-            marker.scale.y = self.status.radius
-            marker.scale.z = 0.05
+            valve.scale.x = self.valve_status.default_thickness
+            valve.scale.y = self.valve_status.radius
+            valve.scale.z = 0.05
+
         else:
-            marker.type = Marker.CYLINDER
+            valve.type = Marker.CYLINDER
             pose_offset = Pose()
             q1 = quaternion_about_axis(math.pi / 2.0, (0,1,0))
             pose_offset.orientation.x = q1[0]
             pose_offset.orientation.y = q1[1]
             pose_offset.orientation.z = q1[2]
             pose_offset.orientation.w = q1[3]
-            rotated_pose = ComposePoses(marker_pose.pose, pose_offset)
-            marker.pose = rotated_pose
-            #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            marker.scale.x = (self.status.radius * 2.0)
-            marker.scale.y = (self.status.radius * 2.0)
-            marker.scale.z = self.status.default_thickness
+            rotated_pose = ComposePoses(valve_pose.pose, pose_offset)
+            valve.pose = rotated_pose
+
+            #Set the scale of the valve -- 1x1x1 here means 1m on a side
+            valve.scale.x = (self.valve_status.radius * 2.0)
+            valve.scale.y = (self.valve_status.radius * 2.0)
+            valve.scale.z = self.valve_status.default_thickness
+
         #Set the color -- be sure to set alpha to something non-zero!
-        marker.color.r = 1.0
-        marker.color.b = 1.0
-        marker.color.g = 0.0
-        marker.color.a = 0.25
-        marker.lifetime = rospy.Duration(1)
-        return marker
+
+        if self.valve_status.color == "PURPLE":
+            valve.color.r = 1.0
+            valve.color.b = 1.0
+            valve.color.g = 0.0
+        elif self.valve_status.color == "RED":
+            valve.color.r = 1.0
+            valve.color.b = 0.0
+            valve.color.g = 0.0
+        elif self.valve_status.color == "GREEN":
+            valve.color.r = 0.0
+            valve.color.b = 0.0
+            valve.color.g = 1.0
+        valve.color.a = 1
+        valve.lifetime = rospy.Duration(1)
+        return valve
 
 
 
