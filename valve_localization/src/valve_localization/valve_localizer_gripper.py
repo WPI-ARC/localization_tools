@@ -102,7 +102,7 @@ class ValveStatus:
         self.last_pointcloud = None
         self.planning_status = self.IDLE
         self.visible = True
-        self.color = "PURPLE"
+        self.color = "CLEAR"
 
 
 
@@ -406,7 +406,7 @@ class ValveLocalizer:
 
     def snap_icp_cb(self, feedback):
         print "Snapping with ICP"
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
 
@@ -416,32 +416,32 @@ class ValveLocalizer:
         state = self.menu_handler.getCheckState( handle )
 
         if handle == planning_getready:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.GETREADY)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_grasp:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.GRASP)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_ungrasp:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.UNGRASP)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_turning:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.TURN)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_finish:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.FINISH)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_preview:
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.PREVIEW)
             self.valve_status.color = "GREEN"
 
@@ -456,7 +456,7 @@ class ValveLocalizer:
 
         if handle == execute_master:
             print "Executing Previous Plan"
-            self.valve_status.color = "RED"
+            self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.EXECUTE)
             self.valve_status.color = "GREEN"
 
@@ -472,7 +472,7 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
         if handle == radius_increase:
@@ -493,7 +493,7 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
         if handle == pose_reset_default:
@@ -514,7 +514,7 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
         if handle == hand_left:
@@ -535,7 +535,7 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
         if handle == type_round:
@@ -556,7 +556,7 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        self.valve_status.color = "PURPLE"
+        self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
         if handle == direction_cw:
@@ -581,7 +581,7 @@ class ValveLocalizer:
         elif (event_type == feedback.MOUSE_UP):
             pass
         elif (event_type == feedback.POSE_UPDATE):
-            self.valve_status.color = "PURPLE"
+            self.valve_status.color = "CLEAR"
             self.valve_status.pose_stamped.pose = feedback.pose
             self.flushTrajMenu()
         elif (event_type == feedback.MENU_SELECT):
@@ -937,19 +937,22 @@ class ValveLocalizer:
 
         #Set the color -- be sure to set alpha to something non-zero!
 
-        if self.valve_status.color == "PURPLE":
+        if self.valve_status.color == "CLEAR":
             valve.color.r = 1.0
             valve.color.b = 1.0
             valve.color.g = 0.0
-        elif self.valve_status.color == "RED":
+            valve.color.a = 0.33
+        elif self.valve_status.color == "SOLID":
             valve.color.r = 1.0
-            valve.color.b = 0.0
+            valve.color.b = 1.0
             valve.color.g = 0.0
+            valve.color.a = 1.0
         elif self.valve_status.color == "GREEN":
             valve.color.r = 0.0
             valve.color.b = 0.0
             valve.color.g = 1.0
-        valve.color.a = 1
+            valve.color.a = 1.0
+
         valve.lifetime = rospy.Duration(1)
         return valve
 
