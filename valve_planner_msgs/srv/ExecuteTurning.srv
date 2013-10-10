@@ -1,3 +1,4 @@
 string Identifier
 ---
 string ErrorCode
+string Labels

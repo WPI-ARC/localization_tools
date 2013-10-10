@@ -30,14 +30,26 @@ from valve_planner_msgs.msg import *
 from valve_planner_msgs.srv import *
 
 
-# [ ] Make each arrow remember it's own pose
-# [ ] Add a menu option to send the left and right grippers out
-# [ ] Add option to show / display arrows on the wheel
-# [ ] Add a call to enable / disable the entire plugin
-# [ ] (?) Turn off the control for the valve when moving arrows?
-# [ ] Confirm arrow angle movement amount
+# [X] Make each arrow remember it's own pose
+# [X] Add a menu option to send the left and right grippers out
+# [-] Add option to show / display arrows on the wheel
+# [X] Add a call to enable / disable the entire plugin
+# [-] (?) Turn off the control for the valve when moving arrows?
+# [X] Confirm arrow angle movement amount
 # [X] Add Option to change the length of the arrow (approach length)
 # [ ] Add model of the hands to the end of each arrow
+# [ ] Make it so that movement turns the disk purple
+# [ ] Add a way to save trajectorie names
+# [ ] Add a way to flush trajectories
+# [ ] Turn valve opaque / not opaque
+# [X] Add length to the message
+# [X] Remove LEFT / RIGHT Options
+# [X] Set it to default pose for the challenge
+# [ ] Add a "Lock Marker" Option
+# [ ] Make it so that move flushes the trajectories
+# [ ] Add a label to the execution case
+# [ ] Push-Pop for execution
+
 
 class ValveStatus:
 
@@ -68,14 +80,14 @@ class ValveStatus:
     EXECUTE = "EXECUTE"
 
     def __init__(self):
-        self.default_radius = 0.1
+        self.default_radius = 0.203
         self.default_thickness = 0.02
         self.radius = self.default_radius
         self.default_pose_stamped = PoseStamped()
         self.default_pose_stamped.header.frame_id = "/Body_TSY"
-        self.default_pose_stamped.pose.position.x = 1.0
-        self.default_pose_stamped.pose.position.y = 0.0
-        self.default_pose_stamped.pose.position.z = 0.0
+        self.default_pose_stamped.pose.position.x = .464
+        self.default_pose_stamped.pose.position.y = .01
+        self.default_pose_stamped.pose.position.z = -.036
         self.default_pose_stamped.pose.orientation.x = 0.0
         self.default_pose_stamped.pose.orientation.y = 0.0
         self.default_pose_stamped.pose.orientation.z = 0.0
@@ -92,13 +104,27 @@ class ValveStatus:
         self.visible = True
         self.color = "PURPLE"
 
+
+
+
+class TrajectoryMenu:
+
+    NOERROR = "NOERROR"
+    SAVE = "SAVE"
+    FLUSH = "FLUSH"
+
+    def __init__(self):
+        self.menuOptions = set()
+
+
+
 # Left RED, right GREEN, none BLUE
 class GripperStatus:
 
     def __init__(self):
         self.max_markers = 2
-        self.current_left = 0
-        self.current_right = 1
+        self.current_left = 1
+        self.current_right = 0
         self.leftPoseStamped = PoseStamped()
         self.rightPoseStamped = PoseStamped()
 
@@ -119,6 +145,8 @@ class ValveLocalizer:
 
         rospy.Subscriber("valve_localization/show", Bool, self.show_tool)
 
+        self.trajMenu = TrajectoryMenu()
+
         #Setup The Valve and Valve Marker
         self.populate_valve_menu()
         self.valve_status = ValveStatus()
@@ -127,12 +155,12 @@ class ValveLocalizer:
         self.server = InteractiveMarkerServer(self.marker_namespace)
 
         #Setup the connection to the planning software
-        rospy.loginfo("Connecting to planner...")
+        rospy.loginfo("NOT Connecting to planner...")
         self.planner_client = rospy.ServiceProxy(planner_service, PlanTurning)
-        self.planner_client.wait_for_service()
+        #self.planner_client.wait_for_service()
         self.execution_client = rospy.ServiceProxy(execution_service, ExecuteTurning)
-        self.execution_client.wait_for_service()
-        rospy.loginfo("...Connected to planner")
+        #self.execution_client.wait_for_service()
+        rospy.loginfo("...NOT Connected to planner")
 
         # Setup the Grippers / Arrows
         self.gripper_status = GripperStatus()
@@ -141,11 +169,11 @@ class ValveLocalizer:
         for x in range (0, self.gripper_status.max_markers):
             self.gripper_status.name.append("gripper_alignment" + str(x))
             self.gripper_status.angle.append(0.0)
-            self.gripper_status.length.append(.1)
+            self.gripper_status.length.append(.13)
             self.gripper_status.visible.append(True)
 
-            if x == 0: self.gripper_status.circ_angle.append(math.pi / 2)
-            if x == 1: self.gripper_status.circ_angle.append((3 * math.pi) / 2)
+            if x == 0: self.gripper_status.circ_angle.append((3 * math.pi) / 2)
+            if x == 1: self.gripper_status.circ_angle.append(math.pi / 2)
 
         # Setup the Refresh Rate of the Marker
         rate = rospy.Rate(20.0)
@@ -229,6 +257,8 @@ class ValveLocalizer:
         req.Request.useRight = True
         req.Request.LeftPose = self.gripper_status.leftPoseStamped
         req.Request.RightPose = self.gripper_status.rightPoseStamped
+        req.Request.LeftLength = self.gripper_status.length[self.gripper_status.current_right]
+        req.Request.RightLength = self.gripper_status.length[self.gripper_status.current_left]
 
         res = None
         try:
@@ -236,7 +266,16 @@ class ValveLocalizer:
             res = self.planner_client.call(req)
             error_code = res.Response.ErrorCode
             labels = res.Response.Labels
-            rospy.loginfo("Planner returned with error code: " + error_code + " | Labels: " + str(labels))
+
+            if error_code == self.trajMenu.NOERROR:
+                pass
+            elif error_code == self.trajMenu.SAVE:
+                self.insertTrajMenuOption(labels)
+            elif error_code == self.trajMenu.FLUSH:
+                self.removeTrajMenuOption(labels)
+            else:
+                rospy.loginfo("Planner returned unknown error code: " + error_code + " | Labels: " + str(labels))
+
             self.valve_status.operating_status = self.valve_status.PLANNED
         except:
             res = None
@@ -255,7 +294,17 @@ class ValveLocalizer:
             self.valve_status.operating_status = self.valve_status.EXECUTING
             res = self.execution_client.call(req)
             error_code = res.ErrorCode
-            rospy.loginfo("Trajectories executed with error code: " + error_code)
+            labels = res.Labels
+
+            if error_code == self.trajMenu.NOERROR:
+                pass
+            elif error_code == self.trajMenu.SAVE:
+                self.insertTrajMenuOption(labels)
+            elif error_code == self.trajMenu.FLUSH:
+                self.removeTrajMenuOption(labels)
+            else:
+                rospy.loginfo("Trajectories executed with error code: " + error_code)
+
             self.valve_status.operating_status = self.valve_status.EXECUTED
         except:
             res = None
@@ -277,6 +326,7 @@ class ValveLocalizer:
         global snap_icp
         global planning_master, planning_getready, planning_turning, planning_finish, planning_preview, planning_grasp, planning_ungrasp
         global execute_master
+        global trajectory_master
         global radius_master, radius_increase, radius_decrease, radius_default
         global pose_master, pose_reset_default, pose_reset_session_defaul, pose_set_default
         global hand_master, hand_left, hand_right, hand_both
@@ -298,7 +348,16 @@ class ValveLocalizer:
         planning_preview = self.menu_handler.insert("Preview Plan", parent = planning_master, callback = self.planning_cb)
 
         #Execute Options
-        execute_master = self.menu_handler.insert("Execute", callback = self.execute_cb)
+        execute_master = self.menu_handler.insert("Execute Most Recent", callback = self.execute_cb)
+
+        #Trajectory Options
+        trajectory_master = self.menu_handler.insert("Cached Trajectories", callback = self.trajectory_cb)
+        if len(self.trajMenu.menuOptions) == 0:
+            self.menu_handler.setVisible(trajectory_master, False)
+        elif len(self.trajMenu.menuOptions) >= 1:
+            self.menu_handler.setVisible(trajectory_master, True)
+            for option in self.trajMenu.menuOptions:
+                self.menu_handler.insert(option, parent = trajectory_master, callback = self.trajectory_cb)
 
         #Radius Options
         radius_master = self.menu_handler.insert("Radius", callback = self.radius_cb)
@@ -331,9 +390,24 @@ class ValveLocalizer:
 
 
 
+    def insertTrajMenuOption(self, option):
+        self.trajMenu.menuOptions.add(option)
+        self.populate_valve_menu()
+
+    def removeTrajMenuOption(self, option):
+        self.trajMenu.menuOptions.remove(option)
+        self.populate_valve_menu()
+
+    def flushTrajMenu(self):
+        self.trajMenu.menuOptions.clear()
+        self.populate_valve_menu()
+
+
+
     def snap_icp_cb(self, feedback):
         print "Snapping with ICP"
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
 
 
@@ -353,17 +427,17 @@ class ValveLocalizer:
 
         elif handle == planning_ungrasp:
             self.valve_status.color = "RED"
-            self.call_planner(self.valve_Status.UNGRASP)
+            self.call_planner(self.valve_status.UNGRASP)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_turning:
             self.valve_status.color = "RED"
-            self.call_planner(self.valve_status.FINISH)
+            self.call_planner(self.valve_status.TURN)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_finish:
             self.valve_status.color = "RED"
-            self.valve_status.hands = self.valve_status.BOTH
+            self.call_planner(self.valve_status.FINISH)
             self.valve_status.color = "GREEN"
 
         elif handle == planning_preview:
@@ -390,12 +464,16 @@ class ValveLocalizer:
             rospy.roswarn("Unknown Execution Clicked!")
 
 
+    def trajectory_cb(self, feedback):
+        print "Trajectory Menu Option Clicked"
+
 
     def radius_cb(self, feedback):
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
         if handle == radius_increase:
             self.valve_status.radius += 0.01
@@ -416,6 +494,7 @@ class ValveLocalizer:
         state = self.menu_handler.getCheckState( handle )
 
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
         if handle == pose_reset_default:
             self.valve_status.pose_stamped = deepcopy(self.valve_status.default_pose_stamped)
@@ -436,6 +515,7 @@ class ValveLocalizer:
         state = self.menu_handler.getCheckState( handle )
 
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
         if handle == hand_left:
             self.valve_status.hands = self.valve_status.LEFT
@@ -456,6 +536,7 @@ class ValveLocalizer:
         state = self.menu_handler.getCheckState( handle )
 
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
         if handle == type_round:
             self.valve_status.valve_type = self.valve_status.ROUND
@@ -476,6 +557,7 @@ class ValveLocalizer:
         state = self.menu_handler.getCheckState( handle )
 
         self.valve_status.color = "PURPLE"
+        self.flushTrajMenu()
 
         if handle == direction_cw:
             self.valve_status.turning_direction = self.valve_status.CW
@@ -499,7 +581,9 @@ class ValveLocalizer:
         elif (event_type == feedback.MOUSE_UP):
             pass
         elif (event_type == feedback.POSE_UPDATE):
+            self.valve_status.color = "PURPLE"
             self.valve_status.pose_stamped.pose = feedback.pose
+            self.flushTrajMenu()
         elif (event_type == feedback.MENU_SELECT):
             pass
         else:
@@ -514,7 +598,7 @@ class ValveLocalizer:
 ##################################
 
     def populate_gripper_menu(self):
-        self.gripper_options = ["Right Hand", "Left Hand", "<-- Left", "Right -->", "(+) 30 Deg", "(-) 30 Deg", "[+] Longer", "[-] Shorter"]
+        self.gripper_options = ["<-- Left", "Right -->", "(+) 30 Deg", "(-) 30 Deg", "[+] Longer", "[-] Shorter"]
         self.gripper_menu_handler = MenuHandler()
         i = 1
         for menu_option in self.gripper_options:
@@ -545,33 +629,33 @@ class ValveLocalizer:
         index = self.gripper_status.name.index(feedback.marker_name)
 
         #Right Hand
-        if (feedback.menu_entry_id == 1):
-            #self.gripper_status.current_right = index
-            rospy.logwarn("I can't do that Dave.")
+        #if (feedback.menu_entry_id == 1):
+        #    #self.gripper_status.current_right = index
+        #    rospy.logwarn("I can't do that Dave.")
         #Left Hand
+        #elif (feedback.menu_entry_id == 2):
+        #    #self.gripper_status.current_left = index
+        #    rospy.logwarn("I can't do that Dave.")
+
+        # (+) 30 Deg == +.2617
+        if (feedback.menu_entry_id == 1):
+            self.gripper_status.circ_angle[index] += (-.2617)
+        # (-) 30 Deg == -.2617
         elif (feedback.menu_entry_id == 2):
-            #self.gripper_status.current_left = index
-            rospy.logwarn("I can't do that Dave.")
+            self.gripper_status.circ_angle[index] += (+.2617)
 
         # (+) 30 Deg == +.2617
         elif (feedback.menu_entry_id == 3):
-            self.gripper_status.circ_angle[index] += .2617
+            self.gripper_status.angle[index] += (-.2617 * 2)
         # (-) 30 Deg == -.2617
         elif (feedback.menu_entry_id == 4):
-            self.gripper_status.circ_angle[index] += (-.2617)
-
-        # (+) 30 Deg == +.2617
-        elif (feedback.menu_entry_id == 5):
-            self.gripper_status.angle[index] += .2617 * 2
-        # (-) 30 Deg == -.2617
-        elif (feedback.menu_entry_id == 6):
-            self.gripper_status.angle[index] += (-.2617 * 2)
+            self.gripper_status.angle[index] += (+.2617 * 2)
 
         # [+] Longer
-        elif (feedback.menu_entry_id == 7):
+        elif (feedback.menu_entry_id == 5):
             self.gripper_status.length[index] += .01
         # [-] Shorter
-        elif (feedback.menu_entry_id == 8):
+        elif (feedback.menu_entry_id == 6):
             self.gripper_status.length[index] += (-.01)
         else:
             rospy.logerr("Unrecognized menu entry")

@@ -9,3 +9,5 @@ bool useLeft
 bool useRight
 geometry_msgs/PoseStamped LeftPose
 geometry_msgs/PoseStamped RightPose
+float64 LeftLength
+float64 RightLength
