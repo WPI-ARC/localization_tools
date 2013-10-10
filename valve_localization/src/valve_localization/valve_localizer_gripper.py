@@ -78,6 +78,8 @@ class ValveStatus:
     FINISH = "END"
     PREVIEW = "PREVIEW"
     EXECUTE = "EXECUTE"
+    LOCKED = "LOCKED"
+    UNLOCKED = "UNLOCKED"
 
     def __init__(self):
         self.default_radius = 0.203
@@ -103,6 +105,7 @@ class ValveStatus:
         self.planning_status = self.IDLE
         self.visible = True
         self.color = "CLEAR"
+        self.lock_state = self.UNLOCKED
 
 
 
@@ -148,8 +151,8 @@ class ValveLocalizer:
         self.trajMenu = TrajectoryMenu()
 
         #Setup The Valve and Valve Marker
-        self.populate_valve_menu()
         self.valve_status = ValveStatus()
+        self.populate_valve_menu()
 
         #Setup the interactive marker server
         self.server = InteractiveMarkerServer(self.marker_namespace)
@@ -332,11 +335,13 @@ class ValveLocalizer:
         global hand_master, hand_left, hand_right, hand_both
         global type_master, type_round, type_left, type_right
         global direction_master, direction_cw, direction_ccw
+        global lock_master
 
         self.menu_handler = MenuHandler()
 
-        #Snap with ICP
-        snap_icp = self.menu_handler.insert("Snap With ICP", callback = self.snap_icp_cb)
+        if self.valve_status.lock_state == self.valve_status.UNLOCKED:
+            #Snap with ICP
+            snap_icp = self.menu_handler.insert("Snap With ICP", callback = self.snap_icp_cb)
 
         #Planning Options
         planning_master = self.menu_handler.insert("Planning", callback = self.planning_cb)
@@ -359,34 +364,42 @@ class ValveLocalizer:
             for option in self.trajMenu.menuOptions:
                 self.menu_handler.insert(option, parent = trajectory_master, callback = self.trajectory_cb)
 
-        #Radius Options
-        radius_master = self.menu_handler.insert("Radius", callback = self.radius_cb)
-        radius_increase = self.menu_handler.insert("Increase Radius", parent = radius_master, callback = self.radius_cb)
-        radius_decrease = self.menu_handler.insert("Decrease Radius", parent = radius_master, callback = self.radius_cb)
-        radius_default = self.menu_handler.insert("Default Radius", parent = radius_master, callback = self.radius_cb)
+        #Lock Options
+        if self.valve_status.lock_state == self.valve_status.UNLOCKED:
+            lock_master = self.menu_handler.insert("LOCK Valve", callback = self.lock_cb)
+        elif self.valve_status.lock_state == self.valve_status.LOCKED:
+            lock_master = self.menu_handler.insert("UNLOCK Valve", callback = self.lock_cb)
 
-        #Pose Options
-        pose_master = self.menu_handler.insert("Pose", callback = self.pose_cb)
-        pose_reset_default = self.menu_handler.insert("Reset Default Pose", parent = pose_master, callback = self.pose_cb)
-        pose_reset_session_default = self.menu_handler.insert("Reset Session Default", parent = pose_master, callback = self.pose_cb)
-        pose_set_default = self.menu_handler.insert("Set Default Pose", parent = pose_master, callback = self.pose_cb)
+        if self.valve_status.lock_state == self.valve_status.UNLOCKED:
 
-        #Hand Options
-        hand_master = self.menu_handler.insert("Hand", callback = self.hand_cb)
-        hand_left = self.menu_handler.insert("Left Hand", parent = hand_master, callback = self.hand_cb)
-        hand_right = self.menu_handler.insert("Right Hand", parent = hand_master, callback = self.hand_cb)
-        hand_both = self.menu_handler.insert("Both Hands", parent = hand_master, callback = self.hand_cb)
+            #Radius Options
+            radius_master = self.menu_handler.insert("Radius", callback = self.radius_cb)
+            radius_increase = self.menu_handler.insert("Increase Radius", parent = radius_master, callback = self.radius_cb)
+            radius_decrease = self.menu_handler.insert("Decrease Radius", parent = radius_master, callback = self.radius_cb)
+            radius_default = self.menu_handler.insert("Default Radius", parent = radius_master, callback = self.radius_cb)
 
-        #Type Options
-        type_master = self.menu_handler.insert("Valve Type", callback = self.type_cb)
-        type_round = self.menu_handler.insert("Round", parent = type_master, callback = self.type_cb)
-        type_left = self.menu_handler.insert("Left Lever", parent=type_master, callback = self.type_cb)
-        type_right = self.menu_handler.insert("Right Lever", parent=type_master, callback = self.type_cb)
+            #Pose Options
+            pose_master = self.menu_handler.insert("Pose", callback = self.pose_cb)
+            pose_reset_default = self.menu_handler.insert("Reset Default Pose", parent = pose_master, callback = self.pose_cb)
+            pose_reset_session_default = self.menu_handler.insert("Reset Session Default", parent = pose_master, callback = self.pose_cb)
+            pose_set_default = self.menu_handler.insert("Set Default Pose", parent = pose_master, callback = self.pose_cb)
 
-        #Turning Options
-        direction_master = self.menu_handler.insert("Turn Direction", callback = self.direction_cb)
-        direction_cw = self.menu_handler.insert("Turn Clockwise", parent = direction_master, callback = self.direction_cb)
-        direction_ccw = self.menu_handler.insert("Turn Counter-Clockwise", parent = direction_master, callback = self.direction_cb)
+            #Hand Options
+            hand_master = self.menu_handler.insert("Hand", callback = self.hand_cb)
+            hand_left = self.menu_handler.insert("Left Hand", parent = hand_master, callback = self.hand_cb)
+            hand_right = self.menu_handler.insert("Right Hand", parent = hand_master, callback = self.hand_cb)
+            hand_both = self.menu_handler.insert("Both Hands", parent = hand_master, callback = self.hand_cb)
+
+            #Type Options
+            type_master = self.menu_handler.insert("Valve Type", callback = self.type_cb)
+            type_round = self.menu_handler.insert("Round", parent = type_master, callback = self.type_cb)
+            type_left = self.menu_handler.insert("Left Lever", parent=type_master, callback = self.type_cb)
+            type_right = self.menu_handler.insert("Right Lever", parent=type_master, callback = self.type_cb)
+
+            #Turning Options
+            direction_master = self.menu_handler.insert("Turn Direction", callback = self.direction_cb)
+            direction_cw = self.menu_handler.insert("Turn Clockwise", parent = direction_master, callback = self.direction_cb)
+            direction_ccw = self.menu_handler.insert("Turn Counter-Clockwise", parent = direction_master, callback = self.direction_cb)
 
 
 
@@ -568,6 +581,21 @@ class ValveLocalizer:
         else:
             rospy.roswarn("Direction > Unknown Direction Clicked!")
 
+
+    def lock_cb(self, feedback):
+        handle = feedback.menu_entry_id
+        state = self.menu_handler.getCheckState( handle )
+
+        if handle == lock_master:
+            if self.valve_status.lock_state == self.valve_status.UNLOCKED:
+                self.valve_status.lock_state = self.valve_status.LOCKED
+                self.populate_valve_menu()
+            elif self.valve_status.lock_state == self.valve_status.LOCKED:
+                self.valve_status.lock_state = self.valve_status.UNLOCKED
+                self.populate_valve_menu()
+
+        else:
+            rospy.roswarn("Direction > Unknown Direction Clicked!")
 
 
 
@@ -790,12 +818,12 @@ class ValveLocalizer:
         valve_imarker.name = 'valve_alignment'
 
         # Make the default control for the marker itself
-        base_control = InteractiveMarkerControl()
-        base_control.orientation_mode = InteractiveMarkerControl.FIXED
-        base_control.always_visible = True
+        #base_control = InteractiveMarkerControl()
+        #base_control.orientation_mode = InteractiveMarkerControl.FIXED
+        #base_control.always_visible = True
         valve_marker = self.make_valve_marker(valve_pose)
-        base_control.markers.append(valve_marker)
-        valve_imarker.controls.append(base_control)
+        #base_control.markers.append(valve_marker)
+        #valve_imarker.controls.append(base_control)
 
         # Make the menu control
         new_control = InteractiveMarkerControl()
@@ -805,77 +833,79 @@ class ValveLocalizer:
         new_control.markers.append(valve_marker)
         valve_imarker.controls.append(new_control)
 
-        # Make the x-axis control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "translate_x"
-        new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 1.0
-        new_control.orientation.y = 0.0
-        new_control.orientation.z = 0.0
-        valve_imarker.controls.append(new_control)
+        if self.valve_status.lock_state == self.valve_status.UNLOCKED:
 
-        # Make the y-axis control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "translate_y"
-        new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 0.0
-        new_control.orientation.y = 1.0
-        new_control.orientation.z = 0.0
-        valve_imarker.controls.append(new_control)
+            # Make the x-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "translate_x"
+            new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 1.0
+            new_control.orientation.y = 0.0
+            new_control.orientation.z = 0.0
+            valve_imarker.controls.append(new_control)
 
-        # Make the z-axis control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "translate_z"
-        new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 0.0
-        new_control.orientation.y = 0.0
-        new_control.orientation.z = 1.0
-        valve_imarker.controls.append(new_control)
+            # Make the y-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "translate_y"
+            new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 0.0
+            new_control.orientation.y = 1.0
+            new_control.orientation.z = 0.0
+            valve_imarker.controls.append(new_control)
 
-        # Make the x-axis rotation control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "rotate_x"
-        new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 1.0
-        new_control.orientation.y = 0.0
-        new_control.orientation.z = 0.0
-        valve_imarker.controls.append(new_control)
+            # Make the z-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "translate_z"
+            new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 0.0
+            new_control.orientation.y = 0.0
+            new_control.orientation.z = 1.0
+            valve_imarker.controls.append(new_control)
 
-        # Make the y-axis control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "rotate_y"
-        new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 0.0
-        new_control.orientation.y = 1.0
-        new_control.orientation.z = 0.0
-        valve_imarker.controls.append(new_control)
+            # Make the x-axis rotation control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "rotate_x"
+            new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 1.0
+            new_control.orientation.y = 0.0
+            new_control.orientation.z = 0.0
+            valve_imarker.controls.append(new_control)
 
-        # Make the z-axis control
-        new_control = InteractiveMarkerControl()
-        new_control.name = "rotate_z"
-        new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-        new_control.always_visible = False
-        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
-        new_control.orientation.w = 1.0
-        new_control.orientation.x = 0.0
-        new_control.orientation.y = 0.0
-        new_control.orientation.z = 1.0
-        valve_imarker.controls.append(new_control)
+            # Make the y-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "rotate_y"
+            new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 0.0
+            new_control.orientation.y = 1.0
+            new_control.orientation.z = 0.0
+            valve_imarker.controls.append(new_control)
+
+            # Make the z-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "rotate_z"
+            new_control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 0.0
+            new_control.orientation.y = 0.0
+            new_control.orientation.z = 1.0
+            valve_imarker.controls.append(new_control)
 
         return valve_imarker
 
