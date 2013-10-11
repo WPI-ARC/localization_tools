@@ -272,19 +272,29 @@ class ValveLocalizer:
             labels = res.Response.Labels
 
             if error_code == self.trajMenu.NOERROR:
-                pass
+                self.valve_status.color = "GREEN"
             elif error_code == self.trajMenu.SAVE:
                 self.insertTrajMenuOption(labels)
+                self.valve_status.color = "GREEN"
             elif error_code == self.trajMenu.FLUSH:
                 self.removeTrajMenuOption(labels)
+                self.valve_status.color = "GREEN"
+            elif error_code == "NoError":
+                rospy.loginfo("Planner retunred with no error (" + error_code + ")")
+                self.valve_status.color = "GREEN"
+            elif error_code == "Happy birthday to you.":
+                rospy.loginfo("Planner returned with no error (" + error_code + ")")
+                self.valve_status.color = "GREEN"
             else:
                 rospy.loginfo("Planner returned unknown error code: " + error_code + " | Labels: " + str(labels))
+                self.valve_status.color = "RED"
 
             self.valve_status.operating_status = self.valve_status.PLANNED
         except:
             res = None
             rospy.logerr("Service call failed to connect. Is the planning server running?")
             self.valve_status.operating_status = self.valve_status.ERROR
+            self.valve_status.color = "RED"
 
 
 
@@ -301,19 +311,29 @@ class ValveLocalizer:
             labels = res.Labels
 
             if error_code == self.trajMenu.NOERROR:
-                pass
+                self.valve_status.color = "GREEN"
             elif error_code == self.trajMenu.SAVE:
                 self.insertTrajMenuOption(labels)
+                self.valve_status.color = "GREEN"
             elif error_code == self.trajMenu.FLUSH:
                 self.removeTrajMenuOption(labels)
+                self.valve_status.color = "GREEN"
+            elif error_code == "NoError":
+                rospy.loginfo("Trajectories executed with no error (" + error_code + ")")
+                self.valve_status.color = "GREEN"
+            elif error_code == "Happy birthday to you.":
+                rospy.loginfo("Trajectories executed with no error (" + error_code + ")")
+                self.valve_status.color = "GREEN"
             else:
-                rospy.loginfo("Trajectories executed with error code: " + error_code)
+                rospy.logerr("Trajectories executed with error code: " + error_code)
+                self.valve_status.color = "RED"
 
             self.valve_status.operating_status = self.valve_status.EXECUTED
         except:
             res = None
             rospy.logerr("Service call failed to connect. Is the execution server running?")
             self.valve_status.operating_status = self.valve_status.ERROR
+            self.valve_status.color = "RED"
 
 
 
@@ -434,32 +454,26 @@ class ValveLocalizer:
         if handle == planning_getready:
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.GETREADY)
-            self.valve_status.color = "GREEN"
 
         elif handle == planning_grasp:
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.GRASP)
-            self.valve_status.color = "GREEN"
 
         elif handle == planning_ungrasp:
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.UNGRASP)
-            self.valve_status.color = "GREEN"
 
         elif handle == planning_turning:
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.TURN)
-            self.valve_status.color = "GREEN"
 
         elif handle == planning_finish:
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.FINISH)
-            self.valve_status.color = "GREEN"
 
         elif handle == planning_preview:
             self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.PREVIEW)
-            self.valve_status.color = "GREEN"
 
         else:
             rospy.roswarn("Planning > Unknown Plan Clicked!")
@@ -474,12 +488,10 @@ class ValveLocalizer:
             print "Executing"
             self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.EXECUTE)
-            self.valve_status.color = "GREEN"
         elif handle == execute_stored:
             print "Executing Stored"
             self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.EXECUTE_STORED)
-            self.valve_status.color = "GREEN"
         else:
             rospy.roswarn("Unknown Execution Clicked!")
 
@@ -988,6 +1000,11 @@ class ValveLocalizer:
             valve.color.r = 0.0
             valve.color.b = 0.0
             valve.color.g = 1.0
+            valve.color.a = 1.0
+        elif self.valve_status.color == "RED":
+            valve.color.r = 1.0
+            valve.color.b = 0.0
+            valve.color.g = 0.0
             valve.color.a = 1.0
 
         valve.lifetime = rospy.Duration(1)
