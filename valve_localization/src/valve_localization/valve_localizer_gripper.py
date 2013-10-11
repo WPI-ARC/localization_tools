@@ -78,6 +78,7 @@ class ValveStatus:
     FINISH = "END"
     PREVIEW = "PREVIEW"
     EXECUTE = "EXECUTE"
+    EXECUTE_STORED = "EXECUTESTORED"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
 
@@ -328,7 +329,7 @@ class ValveLocalizer:
 
         global snap_icp
         global planning_master, planning_getready, planning_turning, planning_finish, planning_preview, planning_grasp, planning_ungrasp
-        global execute_master
+        global execute_master, execute, execute_stored
         global trajectory_master
         global radius_master, radius_increase, radius_decrease, radius_default
         global pose_master, pose_reset_default, pose_reset_session_defaul, pose_set_default
@@ -345,15 +346,17 @@ class ValveLocalizer:
 
         #Planning Options
         planning_master = self.menu_handler.insert("Planning", callback = self.planning_cb)
+        planning_preview = self.menu_handler.insert("PREVIEW Plan", parent = planning_master, callback = self.planning_cb)
         planning_getready = self.menu_handler.insert("Plan GETREADY", parent = planning_master, callback = self.planning_cb)
         planning_grasp = self.menu_handler.insert("Plan GRASP", parent = planning_master, callback = self.planning_cb)
         planning_ungrasp = self.menu_handler.insert("Plan UNGRASP", parent = planning_master, callback = self.planning_cb)
         planning_turning = self.menu_handler.insert("Plan TURNING", parent = planning_master, callback = self.planning_cb)
         planning_finish = self.menu_handler.insert("Plan FINISH", parent = planning_master, callback = self.planning_cb)
-        planning_preview = self.menu_handler.insert("Preview Plan", parent = planning_master, callback = self.planning_cb)
 
         #Execute Options
-        execute_master = self.menu_handler.insert("Execute Most Recent", callback = self.execute_cb)
+        execute_master = self.menu_handler.insert("Execute", callback = self.execute_cb)
+        execute = self.menu_handler.insert("Execute", parent = execute_master, callback = self.execute_cb)
+        execute_stored = self.menu_handler.insert("Execute Stored", parent = execute_master, callback = self.execute_cb)
 
         #Trajectory Options
         trajectory_master = self.menu_handler.insert("Cached Trajectories", callback = self.trajectory_cb)
@@ -467,12 +470,16 @@ class ValveLocalizer:
         handle = feedback.menu_entry_id
         state = self.menu_handler.getCheckState( handle )
 
-        if handle == execute_master:
-            print "Executing Previous Plan"
+        if handle == execute:
+            print "Executing"
             self.valve_status.color = "SOLID"
             self.call_execute(self.valve_status.EXECUTE)
             self.valve_status.color = "GREEN"
-
+        elif handle == execute_stored:
+            print "Executing Stored"
+            self.valve_status.color = "SOLID"
+            self.call_execute(self.valve_status.EXECUTE_STORED)
+            self.valve_status.color = "GREEN"
         else:
             rospy.roswarn("Unknown Execution Clicked!")
 
@@ -971,7 +978,7 @@ class ValveLocalizer:
             valve.color.r = 1.0
             valve.color.b = 1.0
             valve.color.g = 0.0
-            valve.color.a = 0.33
+            valve.color.a = 0.5
         elif self.valve_status.color == "SOLID":
             valve.color.r = 1.0
             valve.color.b = 1.0
