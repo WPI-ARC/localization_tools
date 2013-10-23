@@ -58,10 +58,15 @@ class ValveStatus:
     UNSNAPPED = 'UNSNAPPED'
     SNAPPED = 'SNAPPED'
     SNAPPEDPLUS = 'SNAPPEDPLUS'
-    LEFT = 'LH'
-    RIGHT = 'RH'
-    BOTH = 'BH'
-    AUTO = 'AUTO'
+
+    LEFT = 'LH' #Right Lever Default
+    RIGHT = 'RH' #Left Lever Default
+    BOTH = 'BH' #Round Valve Default
+
+    USER_LH = 'USER_LH' #User LH Only
+    USER_RH = 'USER_RH' #User RH Only
+    USER_BH = 'USER_BH' #USer Both Hands
+
     ROUND = 'W'
     LEFTLEVER = 'LL'
     RIGHTLEVER = 'RL'
@@ -99,7 +104,7 @@ class ValveStatus:
         self.session_pose_stamped = deepcopy(self.default_pose_stamped)
         self.pose_stamped = deepcopy(self.default_pose_stamped)
         self.icp_status = self.UNSNAPPED
-        self.hands = self.AUTO
+        self.hands = self.BOTH
         self.valve_type = self.ROUND
         self.operating_status = self.READY
         self.turning_direction = self.CCW
@@ -234,16 +239,18 @@ class ValveLocalizer:
             self.server.insert(alignment_marker, self.alignment_feedback_cb)
             self.menu_handler.apply(self.server, "valve_alignment")
 
-        if self.valve_status.hands == self.valve_status.AUTO:
+        if self.valve_status.hands == self.valve_status.BOTH or\
+           self.valve_status.hands == self.valve_status.LEFT or\
+           self.valve_status.hands == self.valve_status.RIGHT:
             self.left_gripper.visible = False
             self.right_gripper.visible = False
-        if self.valve_status.hands == self.valve_status.BOTH:
+        if self.valve_status.hands == self.valve_status.USER_BH:
             self.left_gripper.visible = True
             self.right_gripper.visible = True
-        if self.valve_status.hands == self.valve_status.LEFT:
+        if self.valve_status.hands == self.valve_status.USER_LH:
             self.left_gripper.visible = True
             self.right_gripper.visible = False
-        if self.valve_status.hands == self.valve_status.RIGHT:
+        if self.valve_status.hands == self.valve_status.USER_RH:
             self.left_gripper.visible = False
             self.right_gripper.visible = True
 
@@ -400,7 +407,7 @@ class ValveLocalizer:
         global trajectory_master
         global radius_master, radius_increase, radius_decrease, radius_default
         global pose_master, pose_reset_default, pose_reset_session_defaul, pose_set_default
-        global hand_master, hand_left, hand_right, hand_both, hand_auto
+        global hand_master, hand_both, hand_left, hand_right, hand_user_both, hand_user_left, hand_user_right
         global type_master, type_round, type_left, type_right
         global direction_master, direction_cw, direction_ccw
         global lock_master
@@ -455,26 +462,57 @@ class ValveLocalizer:
             pose_set_default = self.menu_handler.insert("Set Default Pose", parent = pose_master, callback = self.pose_cb)
 
             #Hand Options
-            hand_master = self.menu_handler.insert("Hands", callback = self.hand_cb)
-            hand_both = self.menu_handler.insert("User Defines Both Hands", parent = hand_master, callback = self.hand_cb)
-            hand_left = self.menu_handler.insert("User Defined Left Hand Only", parent = hand_master, callback = self.hand_cb)
-            hand_right = self.menu_handler.insert("User Defined Right Hand Only", parent = hand_master, callback = self.hand_cb)
-            hand_auto = self.menu_handler.insert("Planner Assign Both Hands", parent = hand_master, callback = self.hand_cb)
-            self.menu_handler.setCheckState(hand_both, False)
-            self.menu_handler.setCheckState(hand_left, False)
-            self.menu_handler.setCheckState(hand_right, False)
-            self.menu_handler.setCheckState(hand_auto, False)
+            if self.valve_status.valve_type == self.valve_status.ROUND:
+                hand_master = self.menu_handler.insert("Hands", callback = self.hand_cb)
+                hand_both = self.menu_handler.insert("Planner Assign Both Hands", parent = hand_master, callback = self.hand_cb)
+                hand_user_both = self.menu_handler.insert("User Defines Both Hands", parent = hand_master, callback = self.hand_cb)
+                hand_user_left = self.menu_handler.insert("User Defined Left Hand Only", parent = hand_master, callback = self.hand_cb)
+                hand_user_right = self.menu_handler.insert("User Defined Right Hand Only", parent = hand_master, callback = self.hand_cb)
+                self.menu_handler.setCheckState(hand_both, False)
+                self.menu_handler.setCheckState(hand_user_both, False)
+                self.menu_handler.setCheckState(hand_user_left, False)
+                self.menu_handler.setCheckState(hand_user_right, False)
 
-            if self.valve_status.hands == self.valve_status.BOTH:
-                self.menu_handler.setCheckState(hand_both, True)
-            elif self.valve_status.hands == self.valve_status.LEFT:
-                self.menu_handler.setCheckState(hand_left, True)
-            elif self.valve_status.hands == self.valve_status.RIGHT:
-                self.menu_handler.setCheckState(hand_right, True)
-            elif self.valve_status.hands == self.valve_status.AUTO:
-                self.menu_handler.setCheckState(hand_auto, True)
-            else:
-                rospy.logwarn("Unknown Hand State Selected When Populating Menu")
+                if self.valve_status.hands == self.valve_status.USER_BH:
+                    self.menu_handler.setCheckState(hand_user_both, True)
+                elif self.valve_status.hands == self.valve_status.USER_LH:
+                    self.menu_handler.setCheckState(hand_user_left, True)
+                elif self.valve_status.hands == self.valve_status.USER_RH:
+                    self.menu_handler.setCheckState(hand_user_right, True)
+                elif self.valve_status.hands == self.valve_status.BOTH:
+                    self.menu_handler.setCheckState(hand_both, True)
+                else:
+                    rospy.logwarn("Unknown Hand State Selected When Populating Menu")
+
+            if self.valve_status.valve_type == self.valve_status.LEFTLEVER:
+                hand_master = self.menu_handler.insert("Hands", callback = self.hand_cb)
+                hand_right = self.menu_handler.insert("Planner Defined Right Hand", parent = hand_master, callback = self.hand_cb)
+                hand_left = self.menu_handler.insert("Planner Defined Left Hand", parent = hand_master, callback = self.hand_cb)
+                self.menu_handler.setCheckState(hand_right, False)
+                self.menu_handler.setCheckState(hand_left, False)
+
+                if self.valve_status.hands == self.valve_status.RIGHT:
+                    self.menu_handler.setCheckState(hand_right, True)
+                elif self.valve_status.hands == self.valve_status.LEFT:
+                    self.menu_handler.setCheckState(hand_left, True)
+                else:
+                    rospy.logwarn("Unknown Hand State Selected When Populating Menu")
+
+            if self.valve_status.valve_type == self.valve_status.RIGHTLEVER:
+                hand_master = self.menu_handler.insert("Hands", callback = self.hand_cb)
+                hand_left = self.menu_handler.insert("Planner Defined Left Hand", parent = hand_master, callback = self.hand_cb)
+                hand_right = self.menu_handler.insert("Planner Defined Right Hand", parent = hand_master, callback = self.hand_cb)
+                self.menu_handler.setCheckState(hand_left, False)
+                self.menu_handler.setCheckState(hand_right, False)
+
+                if self.valve_status.hands == self.valve_status.LEFT:
+                    self.menu_handler.setCheckState(hand_left, True)
+                elif self.valve_status.hands == self.valve_status.RIGHT:
+                    self.menu_handler.setCheckState(hand_right, True)
+                else:
+                    rospy.logwarn("Unknown Hand State Selected When Populating Menu")
+
+
 
             #Type Options
             type_master = self.menu_handler.insert("Valve Type", callback = self.type_cb)
@@ -633,20 +671,27 @@ class ValveLocalizer:
         self.valve_status.color = "CLEAR"
         self.flushTrajMenu()
 
-        if handle == hand_left:
-            self.valve_status.hands = self.valve_status.LEFT
+        if self.valve_status.valve_type == self.valve_status.LEFTLEVER or\
+           self.valve_status.valve_type == self.valve_status.RIGHTLEVER:
 
-        elif handle == hand_right:
-            self.valve_status.hands = self.valve_status.RIGHT
+            if handle == hand_left:
+                self.valve_status.hands = self.valve_status.LEFT
+            elif handle == hand_right:
+                self.valve_status.hands = self.valve_status.RIGHT
+            else:
+                rospy.roswarn("Hand > Unknown Hand Clicked!")
 
-        elif handle == hand_both:
-            self.valve_status.hands = self.valve_status.BOTH
-
-        elif handle == hand_auto:
-            self.valve_status.hands = self.valve_status.AUTO
-
-        else:
-            rospy.roswarn("Hand > Unknown Hand Clicked!")
+        if self.valve_status.valve_type == self.valve_status.ROUND:
+            if handle == hand_both:
+                self.valve_status.hands = self.valve_status.BOTH
+            elif handle == hand_user_left:
+                self.valve_status.hands = self.valve_status.USER_LH
+            elif handle == hand_user_right:
+                self.valve_status.hands = self.valve_status.USER_RH
+            elif handle == hand_user_both:
+                self.valve_status.hands = self.valve_status.USER_BH
+            else:
+                rospy.roswarn("Hand > Unknown Hand Clicked!")
 
         self.populate_valve_menu()
 
@@ -660,12 +705,15 @@ class ValveLocalizer:
 
         if handle == type_round:
             self.valve_status.valve_type = self.valve_status.ROUND
+            self.valve_status.hands = self.valve_status.BOTH
 
         elif handle == type_left:
             self.valve_status.valve_type = self.valve_status.LEFTLEVER
+            self.valve_status.hands = self.valve_status.RIGHT
 
         elif handle == type_right:
             self.valve_status.valve_type = self.valve_status.RIGHTLEVER
+            self.valve_status.hands = self.valve_status.LEFT
 
         else:
             rospy.roswarn("Type > Unknown Type Clicked!")
