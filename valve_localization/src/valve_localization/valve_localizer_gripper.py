@@ -150,6 +150,7 @@ class GripperStatus:
         self.init = False
         self.poseStamped = PoseStamped()
         self.gripperOffset = PoseStamped()
+        self.prevFeedbackPose = Pose()
         self.name = None
         self.circ_angle = 0.0
         self.angle = 0
@@ -189,6 +190,7 @@ class ValveLocalizer:
         self.left_gripper.name = "left_gripper"
         self.left_gripper.circ_angle = (3 * math.pi) / 2
         self.left_gripper.poseStamped = deepcopy(self.valve_status.pose_stamped)
+        self.left_gripper.prevFeedbackPose = deepcopy(self.valve_status.pose_stamped.pose)
 
         self.right_gripper.name = "right_gripper"
         self.right_gripper.circ_angle = math.pi / 2
@@ -258,12 +260,12 @@ class ValveLocalizer:
         if (self.left_gripper.visible == True):
             left_gripper_marker = self.make_gripper_imarker(self.left_gripper)
             self.server.insert(left_gripper_marker, self.gripper_feedback_cb)
-            self.gripper_menu_handler.apply(self.server, self.left_gripper.name)
+            #self.gripper_menu_handler.apply(self.server, self.left_gripper.name)
 
         if (self.right_gripper.visible == True):
             right_gripper_marker = self.make_gripper_imarker(self.right_gripper)
             self.server.insert(right_gripper_marker, self.gripper_feedback_cb)
-            self.gripper_menu_handler.apply(self.server, self.right_gripper.name)
+            #self.gripper_menu_handler.apply(self.server, self.right_gripper.name)
 
         self.server.applyChanges()
 
@@ -804,9 +806,61 @@ class ValveLocalizer:
             pass
         elif (event_type == feedback.POSE_UPDATE):
             if (feedback.marker_name == self.left_gripper.name):
-                self.left_gripper.poseStamped.pose = cur_pose
+
+                self.left_gripper.gripperOffset.pose = ComposePoses(InvertPose(self.left_gripper.poseStamped.pose), cur_pose)
+
+                if feedback.control_name == "translate_x":
+
+                    if self.left_gripper.gripperOffset.pose.position.x >= 0.01:
+                        self.left_gripper.length += -.02
+
+                    if self.left_gripper.gripperOffset.pose.position.x <= -0.01:
+                        self.left_gripper.length += .02
+
+                if feedback.control_name == "translate_z":
+
+                    if self.left_gripper.gripperOffset.pose.position.y >= 0.01:
+                        self.left_gripper.circ_angle += -.05
+
+                    if self.left_gripper.gripperOffset.pose.position.y <= -0.01:
+                        self.left_gripper.circ_angle += .05
+
+                if feedback.control_name == "translate_y":
+
+                    if self.left_gripper.gripperOffset.pose.position.z >= 0.01:
+                        self.left_gripper.angle += .04
+
+                    if self.left_gripper.gripperOffset.pose.position.z <= -0.01:
+                        self.left_gripper.angle += -.04
+
             if (feedback.marker_name == self.right_gripper.name):
-                self.right_gripper.poseStamped.pose = cur_pose
+
+                self.right_gripper.gripperOffset.pose = ComposePoses(InvertPose(self.right_gripper.poseStamped.pose), cur_pose)
+
+                if feedback.control_name == "translate_x":
+
+                    if self.right_gripper.gripperOffset.pose.position.x >= 0.01:
+                        self.right_gripper.length += -.02
+
+                    if self.right_gripper.gripperOffset.pose.position.x <= -0.01:
+                        self.right_gripper.length += .02
+
+                if feedback.control_name == "translate_z":
+
+                    if self.right_gripper.gripperOffset.pose.position.y >= 0.01:
+                        self.right_gripper.circ_angle += -.05
+
+                    if self.right_gripper.gripperOffset.pose.position.y <= -0.01:
+                        self.right_gripper.circ_angle += .05
+
+                if feedback.control_name == "translate_y":
+
+                    if self.right_gripper.gripperOffset.pose.position.z >= 0.01:
+                        self.right_gripper.angle += .04
+
+                    if self.right_gripper.gripperOffset.pose.position.z <= -0.01:
+                        self.right_gripper.angle += -.04
+
         elif (event_type == feedback.MENU_SELECT):
             rospy.loginfo("Menu feedback selection: " + self.gripper_options[feedback.menu_entry_id - 1])
             self.process_gripper_menu_select(feedback)
@@ -887,6 +941,43 @@ class ValveLocalizer:
         gripper_menu_control.orientation_mode = InteractiveMarkerControl.FIXED
         gripper_menu_control.markers.append(gripper_marker)
         gripper_imarker.controls.append(gripper_menu_control)
+
+        if True == True:
+            # Make the x-axis control
+            new_control = InteractiveMarkerControl()
+            new_control.name = "translate_x"
+            new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+            new_control.always_visible = False
+            new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+            new_control.orientation.w = 1.0
+            new_control.orientation.x = 1.0
+            new_control.orientation.y = 0.0
+            new_control.orientation.z = 0.0
+            gripper_imarker.controls.append(new_control)
+
+        # Make the y-axis control
+        new_control = InteractiveMarkerControl()
+        new_control.name = "translate_y"
+        new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+        new_control.always_visible = False
+        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+        new_control.orientation.w = 1.0
+        new_control.orientation.x = 0.0
+        new_control.orientation.y = 1.0
+        new_control.orientation.z = 0.0
+        gripper_imarker.controls.append(new_control)
+
+        # Make the y-axis control
+        new_control = InteractiveMarkerControl()
+        new_control.name = "translate_z"
+        new_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+        new_control.always_visible = False
+        new_control.orientation_mode = InteractiveMarkerControl.INHERIT
+        new_control.orientation.w = 1.0
+        new_control.orientation.x = 0.0
+        new_control.orientation.y = 0.0
+        new_control.orientation.z = 1.0
+        gripper_imarker.controls.append(new_control)
 
         return gripper_imarker
 
