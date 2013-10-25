@@ -30,13 +30,21 @@ Current Menu Options with Cooresponding Planner Strings:
 **There is now an option to use grippers or pegs. The "Hands" Menu changes for a round valve depending on the end_effector type.**
 
 If the valve type is Round: (Sends `ValveType = "W"`) (DEFAULT Option)
+
   **If the end effector type is a gripper: (Sends `EndEffector = "GRIPPER"`) (DEFAULT Option)**
+  
     Hands > Planner Assigns Both Hands (Sends `Hands = "BH"`) (DEFAULT Option)
+    
     **Hands > Planner Assigns Left Hand Only (Sends `Hands = "LH"`)**
+    
     **Hands > Planner Assigns Right Hand Only (Sends `Hands = "RH"`)**
+    
     Hands > User Defines Both Hands (Sends `Hands = "USER_BH"`)
+    
     Hands > User Defined Left Hand Only (Sends `Hands = "USER_LH"`)
+    
     Hands > User Defined Right Hand Only (Sends `Hands = "USER_RH"`)
+    
 
   **If the end effector type is a peg: (Sends `EndEffector = "PEG"`)**
     Hands > User Defines Both Hands (Sends `Hands = "USER_BH"`) (DEFAULT Option)
