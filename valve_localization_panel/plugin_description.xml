@@ -1,0 +1,16 @@
+<library path="${prefix}/lib/libvalve_localization_panel">
+  <class name="HuboValveLocalizationPanel"
+         type="Valve_Localization::HuboValveLocalizationPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A panel to hold the functionality of the valve localizer
+    </description>
+  </class>
+  <class name="HuboValveLocalizerWidget"
+         type="Valve_Localization::HuboValveLocalizationWidget"
+         base_class_type="QTabWidget">
+    <description>
+      The widget which is laid on top of the HuboValveLocalizationPanel
+    </description>
+  </class>
+</library>

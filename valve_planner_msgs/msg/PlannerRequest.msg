@@ -1,6 +1,7 @@
 std_msgs/Header header
 geometry_msgs/PoseStamped ValvePose
 float64 ValveSize
+float64 TurnAmount
 string ValveType
 string EndEffector
 string Hands
