@@ -41,3 +41,13 @@ string USER_RIGHT="USER_RH"
 string Direction
 string CLOCKWISE="CW"
 string COUNTER_CLOCKWISE="CCW"
+
+## Planning in a Box
+bool PlanInBox
+
+## Complaince
+bool LeftCompliance
+bool RightCompliance
+
+## Middle Grab
+bool GrabMiddle

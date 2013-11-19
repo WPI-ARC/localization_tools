@@ -192,6 +192,13 @@ protected Q_SLOTS:
   void handleTurnAmount(int value);
   void handleValveRadius(int value);
 
+  void handleLeftCompliant(bool isChecked);
+  void handleRightCompliant(bool isChecked);
+
+  void handlePlanInBox(bool isChecked);
+
+  void handleGrabMiddle(bool isChecked);
+
 private:
 
     //Ros Node
@@ -253,6 +260,11 @@ private:
     QRadioButton* userRightRadioButton_;
     QRadioButton* grippersRadioButton_;
     QRadioButton* pegsRadioButton_;
+
+    QCheckBox* leftArmCompliantBox_;
+    QCheckBox* rightArmCompliantBox_;
+    QCheckBox* planInBoxBox_;
+    QCheckBox* grabMiddleBox_;
 
 };
 

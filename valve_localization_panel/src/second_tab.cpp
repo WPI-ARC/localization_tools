@@ -93,7 +93,7 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
 
     QLabel* turnAmountText = new QLabel;
-    turnAmountText->setText("Turn Amount: ");
+    turnAmountText->setText("Max Turn: ");
     bottomLayout->addWidget(turnAmountText, 0, 0, Qt::AlignRight);
 
     turnAmountSpinBox_ = new QSpinBox;
@@ -116,20 +116,35 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     QLabel* valveRadiusText = new QLabel;
     valveRadiusText->setText("Valve Radius: ");
-    bottomLayout->addWidget(valveRadiusText, 2, 0, Qt::AlignRight);
+    bottomLayout->addWidget(valveRadiusText, 1, 0, Qt::AlignRight);
 
     valveRadiusSpinBox_ = new QSpinBox;
     valveRadiusSpinBox_->setRange(0, 40);
     valveRadiusSpinBox_->setSingleStep(1);
     valveRadiusSpinBox_->setValue(20);
-    bottomLayout->addWidget(valveRadiusSpinBox_, 2, 1, Qt::AlignCenter);
+    bottomLayout->addWidget(valveRadiusSpinBox_, 1, 1, Qt::AlignCenter);
 
     QLabel* cmText = new QLabel;
     cmText->setText(" cm");
-    bottomLayout->addWidget(cmText, 2, 2, Qt::AlignLeft);
+    bottomLayout->addWidget(cmText, 1, 2, Qt::AlignLeft);
 
     connect(valveRadiusSpinBox_, SIGNAL(valueChanged(int)),
             this,              SLOT(handleValveRadius(int)));
+
+    //================================
+    //     Plan In Box
+    //================================
+
+    QLabel* planInBoxText = new QLabel;
+    planInBoxText->setText("Plan In Box? ");
+    bottomLayout->addWidget(planInBoxText, 2, 0, Qt::AlignRight);
+
+    planInBoxBox_ = new QCheckBox;
+    planInBoxBox_->setChecked(true);
+    bottomLayout->addWidget(planInBoxBox_, 2, 1, Qt::AlignCenter);
+
+    connect(planInBoxBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handlePlanInBox(bool)));
 
 
     //================================
@@ -254,10 +269,6 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     userRightRadioButton_ = new QRadioButton;
     bottomLayout->addWidget(userRightRadioButton_, 8, 3, Qt::AlignLeft);
 
-    userBothRadioButton_->setEnabled(false);
-    userLeftRadioButton_->setEnabled(false);
-    userRightRadioButton_->setEnabled(false);
-
     handsButtonGroup->addButton(plannerBothRadioButton_);
     handsButtonGroup->addButton(plannerLeftRadioButton_);
     handsButtonGroup->addButton(plannerRightRadioButton_);
@@ -282,6 +293,49 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     connect(userRightRadioButton_, SIGNAL(toggled(bool)),
             this,              SLOT(handleUserRight(bool)));
+
+
+    QLabel* grabMiddleText = new QLabel;
+    grabMiddleText->setText("Grab Middle? ");
+    bottomLayout->addWidget(grabMiddleText, 10, 0, Qt::AlignRight);
+
+    grabMiddleBox_ = new QCheckBox;
+    grabMiddleBox_->setChecked(true);
+    bottomLayout->addWidget(grabMiddleBox_, 10, 1, Qt::AlignCenter);
+
+    grabMiddleBox_->setChecked(false);
+
+    connect(grabMiddleBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handleGrabMiddle(bool)));
+
+    //Compliance
+    QLabel* complianceText = new QLabel;
+    complianceText->setText("Compliance: ");
+    bottomLayout->addWidget(complianceText, 5, 4, Qt::AlignRight);
+
+    QLabel* leftComplianceText = new QLabel;
+    leftComplianceText->setText("Left Arm ");
+    bottomLayout->addWidget(leftComplianceText, 6, 4, Qt::AlignRight);
+
+    QLabel* rightComplianceText = new QLabel;
+    rightComplianceText->setText("Right Arm ");
+    bottomLayout->addWidget(rightComplianceText, 7, 4, Qt::AlignRight);
+
+    leftArmCompliantBox_ = new QCheckBox;
+    leftArmCompliantBox_->setChecked(false);
+    bottomLayout->addWidget(leftArmCompliantBox_, 6, 5, Qt::AlignCenter);
+
+    rightArmCompliantBox_ = new QCheckBox;
+    rightArmCompliantBox_->setChecked(false);
+    bottomLayout->addWidget(rightArmCompliantBox_, 7, 5, Qt::AlignCenter);
+
+    connect(leftArmCompliantBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handleLeftCompliant(bool)));
+
+    connect(rightArmCompliantBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handleRightCompliant(bool)));
+
+
 
     //End Effector
     QLabel* endEffectorText = new QLabel;

@@ -7,6 +7,10 @@ string EndEffector
 string Hands
 string Direction
 string TaskStage
+bool LeftCompliance
+bool RightCompliance
+bool PlanInBox
+bool GrabMiddle
 bool useLeft
 bool useRight
 geometry_msgs/PoseStamped LeftPose

@@ -93,7 +93,7 @@ class ValveStatus:
     UNLOCKED = "UNLOCKED"
 
     def __init__(self):
-        self.default_radius = 0.203
+        self.default_radius = 0.20
         self.default_thickness = 0.02
         self.radius = self.default_radius
         self.default_pose_stamped = PoseStamped()
@@ -124,6 +124,10 @@ class ValveStatus:
         self.lastPlan = None
         self.lastReturn = None
         self.turn_amount = 30
+        self.left_compliant = False
+        self.right_compliant = False
+        self.plan_in_box = False
+        self.grab_middle = False
 
 
 
@@ -164,7 +168,6 @@ class ValveLocalizer:
 
         #Setup The Valve and Valve Marker
         self.valve_status = ValveStatus()
-        self.populate_valve_menu()
 
         #Setup the interactive marker server
         self.server = InteractiveMarkerServer(self.marker_namespace)
@@ -181,6 +184,8 @@ class ValveLocalizer:
         updatePublisher = rospy.Publisher("valve_localization_panel/update", PanelUpdate)
 
         self.PanelUpdateSubscriber = rospy.Subscriber("valve_localization_panel/state", PanelUpdate, self.updateFromPanel)
+
+        self.populate_valve_menu()
 
         # Setup the Grippers / Arrows
         self.left_gripper = GripperStatus()
@@ -258,6 +263,13 @@ class ValveLocalizer:
             self.valve_status.hands = self.valve_status.USER_LH
         elif (data.Hands == PanelUpdate.USER_RIGHT):
             self.valve_status.hands = self.valve_status.USER_RH
+
+        self.valve_status.plan_in_box = data.PlanInBox
+
+        self.valve_status.left_compliance = data.LeftCompliance
+        self.valve_status.right_compliance = data.RightCompliance
+
+        self.valve_status.grab_middle = data.GrabMiddle
 
         data.State = "NONE"
 
@@ -481,6 +493,10 @@ class ValveLocalizer:
         req.Request.Direction = self.valve_status.turning_direction
         req.Request.TaskStage = self.valve_status.planning_status
         req.Request.TurnAmount = self.valve_status.turn_amount
+        req.Request.PlanInBox = self.valve_status.plan_in_box
+        req.Request.LeftCompliance = self.valve_status.left_compliance
+        req.Request.RightCompliance = self.valve_status.right_compliance
+        req.Request.GrabMiddle = self.valve_status.grab_middle
 
         if self.valve_status.end_effector == self.valve_status.GRIPPER:
             req.Request.useLeft = self.left_gripper.visible
@@ -581,9 +597,61 @@ class ValveLocalizer:
 #   Valve Menu Stuff             #
 ##################################
 
+    def send_panel_state(self):
+
+        data = PanelUpdate()
+
+        data.ValveRadius = self.valve_status.default_radius
+
+        if (self.valve_status.valve_type == self.valve_status.ROUND):
+            data.ValveType = PanelUpdate.ROUND
+        elif (self.valve_status.valve_type == self.valve_status.LEFTLEVER):
+            data.ValveType = PanelUpdate.LEFT_LEVER
+        elif (self.valve_status.valve_type == self.valve_status.RIGHTLEVER):
+            data.ValveType = PanelUpdate.RIGHT_LEVER
+
+        if (self.valve_status.hands == self.valve_status.BOTH):
+            data.Hands = PanelUpdate.PLANNER_BOTH
+        elif (self.valve_status.hands == self.valve_status.LEFT):
+            data.Hands = PanelUpdate.PLANNER_LEFT
+        elif (self.valve_status.hands == self.valve_status.RIGHT):
+            data.Hands = PanelUpdate.PLANNER_RIGHT
+        elif (self.valve_status.hands == self.valve_status.USER_BH):
+            data.Hands = PanelUpdate.USER_BOTH
+        elif (self.valve_status.hands == self.valve_status.USER_LH):
+            data.Hands = PanelUpdate.USER_LEFT
+        elif (self.valve_status.hands == self.valve_status.USER_RH):
+            data.Hands = PanelUpdate.USER_RIGHT
+
+        if (self.valve_status.turning_direction == self.valve_status.CW):
+            data.Direction = PanelUpdate.CLOCKWISE
+        elif (self.valve_status.turning_direction == self.valve_status.CCW):
+            data.Hands = PanelUpdate.COUNTER_CLOCKWISE
+
+        updatePublisher.publish(data)
+
+
+
 
 
     def populate_valve_menu(self):
+
+        global lock_master
+
+        self.menu_handler = MenuHandler()
+
+        #Lock Options
+        if self.valve_status.lock_state == self.valve_status.UNLOCKED:
+            lock_master = self.menu_handler.insert("LOCK Valve", callback = self.lock_cb)
+        elif self.valve_status.lock_state == self.valve_status.LOCKED:
+            lock_master = self.menu_handler.insert("UNLOCK Valve", callback = self.lock_cb)
+
+
+
+
+
+
+    def populate_valve_menu2(self):
 
         global snap_icp
         global planning_master, planning_getready, planning_turning, planning_finish, planning_preview, planning_grasp, planning_ungrasp
@@ -595,6 +663,9 @@ class ValveLocalizer:
         global type_master, type_round, type_left, type_right
         global direction_master, direction_cw, direction_ccw
         global lock_master
+
+
+        #self.send_panel_state()
 
         self.menu_handler = MenuHandler()
 
