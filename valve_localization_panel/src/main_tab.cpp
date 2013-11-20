@@ -296,15 +296,16 @@ void HuboValveLocalizationWidget::initializeMainTab()
     //     Information Layout
     //================================
 
-    QLabel* informationText = new QLabel;
-    informationText->setText("Information: ");
-    informationText->setStyleSheet("QLabel { color : black; font: 20px;}");
-    informationLayout->addWidget(informationText, 0, Qt::AlignRight);
+    //QLabel* informationText = new QLabel;
+    //informationText->setText("Information: ");
+    //informationText->setStyleSheet("QLabel { color : black; font: 20px;}");
+    //informationLayout->addWidget(informationText, 0, Qt::AlignRight);
 
     informationCurrent_ = new QLabel;
     informationCurrent_->setText("Waiting For Input ...");
     informationCurrent_->setStyleSheet("QLabel { background-color: white; color : black; font: 20px;}");
-    informationLayout->addWidget(informationCurrent_, 0, Qt::AlignLeft);
+    informationLayout->addWidget(informationCurrent_, 0, Qt::AlignCenter);
+    informationCurrent_->setWordWrap(true);
 
     //================================
     //     Turn Amount Layout
