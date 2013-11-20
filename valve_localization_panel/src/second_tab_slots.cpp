@@ -217,7 +217,12 @@ void HuboValveLocalizationWidget::handleGrabMiddle(bool isChecked){
         userBothRadioButton_->setEnabled(false);
         userLeftRadioButton_->setEnabled(false);
         userRightRadioButton_->setEnabled(false);
-        plannerRightRadioButton_->setChecked(true);
+
+        if (plannerLeftRadioButton_->isChecked() == false &&
+            plannerRightRadioButton_->isChecked() == false) {
+
+                plannerRightRadioButton_->setChecked(true);
+        }
 
     } else {
 
@@ -226,7 +231,7 @@ void HuboValveLocalizationWidget::handleGrabMiddle(bool isChecked){
             userBothRadioButton_->setEnabled(true);
             userLeftRadioButton_->setEnabled(true);
             userRightRadioButton_->setEnabled(true);
-            plannerBothRadioButton_->setChecked(true);
+            //plannerBothRadioButton_->setChecked(true);
         }
     }
 
