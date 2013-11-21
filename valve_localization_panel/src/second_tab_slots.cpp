@@ -50,7 +50,7 @@ namespace Valve_Localization {
 
 void HuboValveLocalizationWidget::handleClockwiseTurnDirection(bool isChecked) {
 
-
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
 
     if (isChecked){
         state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::CLOCKWISE;
@@ -59,12 +59,17 @@ void HuboValveLocalizationWidget::handleClockwiseTurnDirection(bool isChecked) {
 
 void HuboValveLocalizationWidget::handleCounterClockwiseTurnDirection(bool isChecked) {
 
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::COUNTER_CLOCKWISE;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleRound(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
 
         turnAmountSpinBox_->setEnabled(true);
@@ -94,6 +99,9 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
 }
 
 void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
 
         plannerBothRadioButton_->setEnabled(false);
@@ -111,6 +119,9 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
 }
 
 void HuboValveLocalizationWidget::handleRightLever(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
 
         plannerBothRadioButton_->setEnabled(false);
@@ -128,79 +139,109 @@ void HuboValveLocalizationWidget::handleRightLever(bool isChecked) {
 }
 
 void HuboValveLocalizationWidget::handlePlannerBoth(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handlePlannerLeft(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handlePlannerRight(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_RIGHT;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleUserBoth(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::USER_BOTH;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleUserLeft(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::USER_LEFT;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleUserRight(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::USER_RIGHT;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleGrippers(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.EndEffector = valve_localization_panel_msgs::PanelUpdate::GRIPPER;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handlePegs(bool isChecked) {
+
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+
     if (isChecked){
         state_msg_.EndEffector = valve_localization_panel_msgs::PanelUpdate::PEG;
         publishState(); }
 }
 
 void HuboValveLocalizationWidget::handleTurnAmount(int value) {
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.TurnAmount = value;
     publishState();
 }
 
 void HuboValveLocalizationWidget::handleValveRadius(int value) {
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.ValveRadius = value;
     publishState();
 }
 
 void HuboValveLocalizationWidget::handleLeftCompliant(bool isChecked){
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.LeftCompliance = isChecked;
     publishState();
 }
 
 void HuboValveLocalizationWidget::handleRightCompliant(bool isChecked){
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.RightCompliance = isChecked;
     publishState();
 }
 
 void HuboValveLocalizationWidget::handlePlanInBox(bool isChecked){
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.PlanInBox = isChecked;
     publishState();
 }
 
 void HuboValveLocalizationWidget::handleGrabMiddle(bool isChecked){
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.GrabMiddle = isChecked;
 
     if(isChecked){
