@@ -162,12 +162,12 @@ void HuboSensorControlRefreshManager::getWaitTime(int t)
 
 void HuboValveLocalizationPanel::save(rviz::Config config) const
 {
-
+  rviz::Panel::save( config );
 }
 
 void HuboValveLocalizationPanel::load(const rviz::Config &config)
 {
-
+  rviz::Panel::load( config );
 }
 
 
