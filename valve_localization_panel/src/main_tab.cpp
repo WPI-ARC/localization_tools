@@ -164,6 +164,8 @@ void HuboValveLocalizationWidget::initializeMainTab()
     planButtonsLayout->addWidget(plan_grasp_button_, 0, Qt::AlignCenter);
     plan_grasp_button_ ->setMinimumSize(minimumButtonSize);
 
+    plan_grasp_button_->setEnabled(false);
+
     plan_turning_button_ = new QPushButton;
     plan_turning_button_ ->setText("Plan TURNING");
     planButtonsLayout->addWidget(plan_turning_button_, 0, Qt::AlignCenter);
@@ -173,6 +175,8 @@ void HuboValveLocalizationWidget::initializeMainTab()
     plan_ungrasp_button_ ->setText("Plan UNGRASP");
     planButtonsLayout->addWidget(plan_ungrasp_button_, 0, Qt::AlignCenter);
     plan_ungrasp_button_ ->setMinimumSize(minimumButtonSize);
+    
+    plan_ungrasp_button_->setEnabled(false);
 
     plan_finish_button_ = new QPushButton;
     plan_finish_button_ ->setText("Plan FINISH");

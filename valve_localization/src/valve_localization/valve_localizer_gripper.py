@@ -1640,7 +1640,7 @@ class ValveLocalizer:
             rotated_pose = ComposePoses(valve_pose.pose, pose_offset)
             valve.pose = rotated_pose
             #Set the scale of the marker -- 1x1x1 here means 1m on a side
-            valve.scale.x = self.valve_status.default_thickness
+            valve.scale.x = 0.05
             valve.scale.y = self.valve_status.radius
             valve.scale.z = 0.05
 
