@@ -95,7 +95,7 @@ HuboValveLocalizationWidget::HuboValveLocalizationWidget(QWidget *parent) : QTab
     //Create the publisher and subscriber for the panel
     state_pub_ = nh_.advertise<valve_localization_panel_msgs::PanelUpdate>("valve_localization_panel/state", 1);
     state_rec_ = nh_.subscribe("valve_localization_panel/update", 1, &HuboValveLocalizationWidget::updateCB, this);
-    joint_client_ = nh_.serviceClient<std_srvs::Empty>("planner/joint_limit_disrupt");
+    joint_client_ = nh_.serviceClient<std_srvs::Empty>("/valve_planner/drchubo_planner/joint_limit_disrupt");
 
     //Setup the state message
     state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
