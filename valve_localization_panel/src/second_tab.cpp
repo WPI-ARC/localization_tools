@@ -179,7 +179,9 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(counterClockwiseRadioButton_, SIGNAL(toggled(bool)),
             this,              SLOT(handleCounterClockwiseTurnDirection(bool)));
 
-    //Valve Type
+    //================================
+    //     Valve Type Layout
+    //================================
     QLabel* valveTypeText = new QLabel;
     valveTypeText->setText("Valve Type: ");
     bottomLayout->addWidget(valveTypeText, 0, 7, Qt::AlignRight);
@@ -220,7 +222,9 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(rightLeverRadioButton_, SIGNAL(toggled(bool)),
             this,              SLOT(handleRightLever(bool)));
 
-    // Planner Hands
+    //================================
+    //     Hand Use Layout
+    //================================
     QLabel* handsText = new QLabel;
     handsText->setText("Hand Use: ");
     bottomLayout->addWidget(handsText, 5, 0, Qt::AlignRight);
@@ -308,7 +312,9 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(grabMiddleBox_, SIGNAL(toggled(bool)),
             this,          SLOT(handleGrabMiddle(bool)));
 
-    //Compliance
+    //================================
+    //     Compliance Layout
+    //================================
     QLabel* complianceText = new QLabel;
     complianceText->setText("Compliance: ");
     bottomLayout->addWidget(complianceText, 5, 4, Qt::AlignRight);
@@ -336,8 +342,9 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
             this,          SLOT(handleRightCompliant(bool)));
 
 
-
-    //End Effector
+    //================================
+    //     End Effector Layout
+    //================================
     QLabel* endEffectorText = new QLabel;
     endEffectorText->setText("End Effector: ");
     bottomLayout->addWidget(endEffectorText, 5, 7, Qt::AlignRight);
@@ -357,8 +364,6 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     pegsRadioButton_ = new QRadioButton;
     bottomLayout->addWidget(pegsRadioButton_, 7, 8, Qt::AlignLeft);
-
-    pegsRadioButton_->setEnabled(false);
 
     endEffectorButtonGroup->addButton(grippersRadioButton_);
     endEffectorButtonGroup->addButton(pegsRadioButton_);
@@ -384,6 +389,23 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     //Add the entire layout to the tab
     secondTab = new QWidget;
     secondTab->setLayout(masterLayout);
+
+
+
+    //*****************************
+    // Enable or Disable Buttons
+    //*****************************
+
+    leftArmCompliantBox_->setEnabled(false);
+    rightArmCompliantBox_->setEnabled(false);
+    userBothRadioButton_->setEnabled(false);
+    userLeftRadioButton_->setEnabled(false);
+    userRightRadioButton_->setEnabled(false);
+    rightLeverRadioButton_->setEnabled(false);
+    grabMiddleBox_->setEnabled(false);
+    pegsRadioButton_->setEnabled(false);
+
+
 
 
     /**

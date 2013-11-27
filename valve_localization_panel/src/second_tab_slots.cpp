@@ -74,16 +74,16 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
 
         if (grabMiddleBox_->isChecked()) {
             plannerBothRadioButton_->setEnabled(false);
-            userBothRadioButton_->setEnabled(false);
-            userLeftRadioButton_->setEnabled(false);
-            userRightRadioButton_->setEnabled(false);
+            //userBothRadioButton_->setEnabled(false);
+            //userLeftRadioButton_->setEnabled(false);
+            //userRightRadioButton_->setEnabled(false);
             plannerRightRadioButton_->setChecked(true);
             counterClockwiseRadioButton_->setChecked(true);
         } else {
             plannerBothRadioButton_->setEnabled(true);
-            userBothRadioButton_->setEnabled(true);
-            userLeftRadioButton_->setEnabled(true);
-            userRightRadioButton_->setEnabled(true);
+            //userBothRadioButton_->setEnabled(true);
+            //userLeftRadioButton_->setEnabled(true);
+            //userRightRadioButton_->setEnabled(true);
             plannerBothRadioButton_->setChecked(true);
             counterClockwiseRadioButton_->setChecked(true);
         }
@@ -99,14 +99,14 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
 void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
     if (isChecked){
 
-        clockwiseRadioButton_->setEnabled(false);
-        counterClockwiseRadioButton_->setEnabled(false);
+        //clockwiseRadioButton_->setEnabled(false);
+        //counterClockwiseRadioButton_->setEnabled(false);
         plannerBothRadioButton_->setEnabled(false);
-        userBothRadioButton_->setEnabled(false);
-        userLeftRadioButton_->setEnabled(false);
-        userRightRadioButton_->setEnabled(false);
-        turnAmountSpinBox_->setEnabled(false);
-        valveRadiusSpinBox_->setEnabled(false);
+        //userBothRadioButton_->setEnabled(false);
+        //userLeftRadioButton_->setEnabled(false);
+        //userRightRadioButton_->setEnabled(false);
+        //turnAmountSpinBox_->setEnabled(false);
+        //valveRadiusSpinBox_->setEnabled(false);
 
         plannerRightRadioButton_->setChecked(true);
 
@@ -119,21 +119,22 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
 void HuboValveLocalizationWidget::handleRightLever(bool isChecked) {
     if (isChecked){
 
-        clockwiseRadioButton_->setEnabled(false);
-        counterClockwiseRadioButton_->setEnabled(false);
-        plannerBothRadioButton_->setEnabled(false);
-        userBothRadioButton_->setEnabled(false);
-        userLeftRadioButton_->setEnabled(false);
-        userRightRadioButton_->setEnabled(false);
-        turnAmountSpinBox_->setEnabled(false);
-        valveRadiusSpinBox_->setEnabled(false);
+        //clockwiseRadioButton_->setEnabled(false);
+        //counterClockwiseRadioButton_->setEnabled(false);
+        //plannerBothRadioButton_->setEnabled(false);
+        //userBothRadioButton_->setEnabled(false);
+        //userLeftRadioButton_->setEnabled(false);
+        //userRightRadioButton_->setEnabled(false);
+        //turnAmountSpinBox_->setEnabled(false);
+        //valveRadiusSpinBox_->setEnabled(false);
 
-        plannerLeftRadioButton_->setChecked(true);
+        //plannerLeftRadioButton_->setChecked(true);
 
-        state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::RIGHT_LEVER;
-        state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
+        //state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::RIGHT_LEVER;
+        //state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
 
-        publishState(); }
+        //publishState();
+    }
 }
 
 void HuboValveLocalizationWidget::handlePlannerBoth(bool isChecked) {
