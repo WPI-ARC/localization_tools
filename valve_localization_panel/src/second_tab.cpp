@@ -391,6 +391,16 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     secondTab->setLayout(masterLayout);
 
 
+    //*****************************
+    // Jim's Button
+    //*****************************
+
+    jimsButton_ = new QPushButton();
+    jimsButton_->setText("Joint Limit Disruption");
+    bottomLayout->addWidget(jimsButton_, 10, 5, 2, 5, Qt::AlignCenter);
+
+    connect(jimsButton_, SIGNAL(clicked(void)),
+            this,        SLOT(handleJointLimitDisrupt(void)));
 
     //*****************************
     // Enable or Disable Buttons

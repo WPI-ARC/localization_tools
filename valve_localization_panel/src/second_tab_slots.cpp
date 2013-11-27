@@ -277,5 +277,17 @@ void HuboValveLocalizationWidget::handleGrabMiddle(bool isChecked){
     publishState();
 }
 
+void HuboValveLocalizationWidget::handleJointLimitDisrupt(void){
+
+    std_srvs::Empty srv;
+
+    if(joint_client_.call(srv)){
+        ROS_INFO("Returned from disrupting joint limits");
+    } else {
+        ROS_WARN("Unable to disrupt joint limits");
+    }
+
+}
+
 
 }

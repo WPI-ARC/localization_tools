@@ -199,12 +199,15 @@ protected Q_SLOTS:
 
   void handleGrabMiddle(bool isChecked);
 
+  void handleJointLimitDisrupt(void);
+
 private:
 
     //Ros Node
     ros::NodeHandle nh_;
     ros::Publisher state_pub_;
     ros::Subscriber state_rec_;
+    ros::ServiceClient joint_client_;
 
     valve_localization_panel_msgs::PanelUpdate state_msg_;
 
@@ -265,6 +268,8 @@ private:
     QCheckBox* rightArmCompliantBox_;
     QCheckBox* planInBoxBox_;
     QCheckBox* grabMiddleBox_;
+
+    QPushButton* jimsButton_;
 
 };
 
