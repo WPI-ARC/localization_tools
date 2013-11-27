@@ -247,6 +247,12 @@ void HuboValveLocalizationWidget::handlePlanInBox(bool isChecked){
     publishState();
 }
 
+void HuboValveLocalizationWidget::handleFixedTurn(bool isChecked){
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
+    state_msg_.FixedTurn = isChecked;
+    publishState();
+}
+
 void HuboValveLocalizationWidget::handleGrabMiddle(bool isChecked){
     state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.GrabMiddle = isChecked;

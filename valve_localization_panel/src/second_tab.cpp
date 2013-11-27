@@ -109,6 +109,21 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(turnAmountSpinBox_, SIGNAL(valueChanged(int)),
             this,              SLOT(handleTurnAmount(int)));
 
+    //================================
+    //     Fixed Turn Layout
+    //================================
+
+    QLabel* fixedTurnText = new QLabel;
+    fixedTurnText->setText("Fixed Turn? ");
+    bottomLayout->addWidget(fixedTurnText, 1, 0, Qt::AlignRight);
+
+    fixedTurnBox_ = new QCheckBox;
+    fixedTurnBox_->setChecked(true);
+    bottomLayout->addWidget(fixedTurnBox_, 1, 1, Qt::AlignCenter);
+
+    connect(fixedTurnBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handleFixedTurn(bool)));
+
 
     //================================
     //     Valve Radius Layout
@@ -116,17 +131,17 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     QLabel* valveRadiusText = new QLabel;
     valveRadiusText->setText("Valve Radius: ");
-    bottomLayout->addWidget(valveRadiusText, 1, 0, Qt::AlignRight);
+    bottomLayout->addWidget(valveRadiusText, 2, 0, Qt::AlignRight);
 
     valveRadiusSpinBox_ = new QSpinBox;
     valveRadiusSpinBox_->setRange(0, 40);
     valveRadiusSpinBox_->setSingleStep(1);
-    valveRadiusSpinBox_->setValue(20);
-    bottomLayout->addWidget(valveRadiusSpinBox_, 1, 1, Qt::AlignCenter);
+    valveRadiusSpinBox_->setValue(23);
+    bottomLayout->addWidget(valveRadiusSpinBox_, 2, 1, Qt::AlignCenter);
 
     QLabel* cmText = new QLabel;
     cmText->setText(" cm");
-    bottomLayout->addWidget(cmText, 1, 2, Qt::AlignLeft);
+    bottomLayout->addWidget(cmText, 2, 2, Qt::AlignLeft);
 
     connect(valveRadiusSpinBox_, SIGNAL(valueChanged(int)),
             this,              SLOT(handleValveRadius(int)));
@@ -137,11 +152,11 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     QLabel* planInBoxText = new QLabel;
     planInBoxText->setText("Plan In Box? ");
-    bottomLayout->addWidget(planInBoxText, 2, 0, Qt::AlignRight);
+    bottomLayout->addWidget(planInBoxText, 3, 0, Qt::AlignRight);
 
     planInBoxBox_ = new QCheckBox;
     planInBoxBox_->setChecked(true);
-    bottomLayout->addWidget(planInBoxBox_, 2, 1, Qt::AlignCenter);
+    bottomLayout->addWidget(planInBoxBox_, 3, 1, Qt::AlignCenter);
 
     connect(planInBoxBox_, SIGNAL(toggled(bool)),
             this,          SLOT(handlePlanInBox(bool)));

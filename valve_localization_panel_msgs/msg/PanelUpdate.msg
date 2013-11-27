@@ -51,3 +51,6 @@ bool RightCompliance
 
 ## Middle Grab
 bool GrabMiddle
+
+## Fixed Turn Amount
+bool FixedTurn

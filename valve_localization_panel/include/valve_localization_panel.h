@@ -201,6 +201,8 @@ protected Q_SLOTS:
 
   void handleJointLimitDisrupt(void);
 
+  void handleFixedTurn(bool isChecked);
+
 private:
 
     //Ros Node
@@ -263,6 +265,8 @@ private:
     QRadioButton* userRightRadioButton_;
     QRadioButton* grippersRadioButton_;
     QRadioButton* pegsRadioButton_;
+
+    QCheckBox* fixedTurnBox_;
 
     QCheckBox* leftArmCompliantBox_;
     QCheckBox* rightArmCompliantBox_;

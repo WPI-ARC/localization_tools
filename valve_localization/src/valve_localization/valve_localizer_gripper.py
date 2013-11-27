@@ -93,14 +93,19 @@ class ValveStatus:
     UNLOCKED = "UNLOCKED"
 
     def __init__(self):
-        self.default_radius = 0.20
+        self.default_radius = 0.23
         self.default_thickness = 0.02
         self.radius = self.default_radius
         self.default_pose_stamped = PoseStamped()
         self.default_pose_stamped.header.frame_id = "/Body_TSY"
+        #self.default_pose_stamped.pose.position.x = .464
+        #self.default_pose_stamped.pose.position.y = .00
+        #self.default_pose_stamped.pose.position.z = -.036
+
         self.default_pose_stamped.pose.position.x = .464
-        self.default_pose_stamped.pose.position.y = .01
-        self.default_pose_stamped.pose.position.z = -.036
+        self.default_pose_stamped.pose.position.y = .09
+        self.default_pose_stamped.pose.position.z = .05
+
         self.default_pose_stamped.pose.orientation.x = 0.0
         self.default_pose_stamped.pose.orientation.y = 0.0
         self.default_pose_stamped.pose.orientation.z = 0.0
@@ -126,8 +131,9 @@ class ValveStatus:
         self.turn_amount = 30
         self.left_compliant = False
         self.right_compliant = False
-        self.plan_in_box = False
+        self.plan_in_box = True
         self.grab_middle = False
+	self.fixed_turn = True
 
 
 
@@ -270,6 +276,8 @@ class ValveLocalizer:
         self.valve_status.right_compliance = data.RightCompliance
 
         self.valve_status.grab_middle = data.GrabMiddle
+
+	self.valve_status.fixed_turn = data.FixedTurn
 
         data.State = "NONE"
 
@@ -497,6 +505,7 @@ class ValveLocalizer:
         req.Request.LeftCompliance = self.valve_status.left_compliance
         req.Request.RightCompliance = self.valve_status.right_compliance
         req.Request.GrabMiddle = self.valve_status.grab_middle
+	req.Request.FixedTurn = self.valve_status.fixed_turn
 
         if self.valve_status.end_effector == self.valve_status.GRIPPER:
             req.Request.useLeft = self.left_gripper.visible

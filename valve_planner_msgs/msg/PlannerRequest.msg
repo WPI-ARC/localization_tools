@@ -11,6 +11,7 @@ bool LeftCompliance
 bool RightCompliance
 bool PlanInBox
 bool GrabMiddle
+bool FixedTurn
 bool useLeft
 bool useRight
 geometry_msgs/PoseStamped LeftPose

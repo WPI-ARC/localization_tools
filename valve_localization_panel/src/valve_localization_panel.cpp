@@ -103,8 +103,10 @@ HuboValveLocalizationWidget::HuboValveLocalizationWidget(QWidget *parent) : QTab
     state_msg_.EndEffector = valve_localization_panel_msgs::PanelUpdate::GRIPPER;
     state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH;
     state_msg_.TurnAmount = 30;
-    state_msg_.ValveRadius = 20;
+    state_msg_.ValveRadius = 23;
     state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::ROUND;
+    state_msg_.FixedTurn = true;
+    state_msg_.PlanInBox = true;
 
     //The First tab controls data about the robots' state
     initializeMainTab();
@@ -121,6 +123,57 @@ HuboValveLocalizationWidget::HuboValveLocalizationWidget(QWidget *parent) : QTab
 }
 
 void HuboValveLocalizationWidget::publishState(void){
+
+    ROS_INFO("--------------------");
+    ROS_INFO("Sending Panel Update");
+
+    if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::NO_COMMAND) ROS_INFO("Command = NONE");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_GETREADY) ROS_INFO("Command = PLAN_GETREADY");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_GRASP) ROS_INFO("Command = PLAN_GRASP");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_TURNING) ROS_INFO("Command = PLAN_TURNING");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_UNGRASP) ROS_INFO("Command = PLAN_UNGRASP");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_FINISH) ROS_INFO("Command = PLAN_FINISH");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PREVIEW) ROS_INFO("Command = PREVIEW");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::EXECUTE) ROS_INFO("Command = EXECUTE");
+    else ROS_WARN("COMMAND = ???? UNKNOWN ????");
+
+    ROS_INFO("Radius = %5.2f", state_msg_.ValveRadius);
+    ROS_INFO("Turn Amount = %5.2f", state_msg_.TurnAmount);
+    if (state_msg_.FixedTurn) ROS_INFO("Fixed Turn = TRUE");
+    else ROS_INFO("Fixed Turn = FALSE");
+
+    if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::ROUND) ROS_INFO("Valve Type = ROUND");
+    else if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::LEFT_LEVER) ROS_INFO("Valve Type = LEFT_LEVER");
+    else if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::RIGHT_LEVER) ROS_INFO("Valve Type = RIGHT_LEVER");
+    else ROS_WARN("Valve Type = ???? UNKNOWN ????");
+
+    if (state_msg_.EndEffector == valve_localization_panel_msgs::PanelUpdate::GRIPPER) ROS_INFO("End Effector = GRIPPER");
+    else if (state_msg_.EndEffector == valve_localization_panel_msgs::PanelUpdate::PEG) ROS_INFO("End Effector = PEG");
+    else ROS_WARN("End Effector = ???? UNKNOWN ????");
+
+    if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH) ROS_INFO("Hands = PLANNER_BOTH");
+    else if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT) ROS_INFO("Hands = PLANNER_LEFT");
+    else if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::PLANNER_RIGHT) ROS_INFO("Hands = PLANNER_RIGHT");
+    else if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::USER_BOTH) ROS_INFO("Hands = USER_BOTH");
+    else if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::USER_LEFT) ROS_INFO("Hands = USER_LEFT");
+    else if (state_msg_.Hands == valve_localization_panel_msgs::PanelUpdate::USER_RIGHT) ROS_INFO("Hands = USER_RIGHT");
+    else ROS_WARN("Hands = ???? UNKNOWN ????");
+
+    if (state_msg_.Direction == valve_localization_panel_msgs::PanelUpdate::CLOCKWISE) ROS_INFO("Direction = CLOCKWISE");
+    else if (state_msg_.Direction == valve_localization_panel_msgs::PanelUpdate::COUNTER_CLOCKWISE) ROS_INFO("Direction = COUNTER_CLOCKWISE");
+    else ROS_WARN("Direction = ???? UNKNOWN ????");
+
+    if (state_msg_.PlanInBox) ROS_INFO("Plan In Box = TRUE");
+    else ROS_INFO("Plan In Box = FALSE");
+
+    if (state_msg_.GrabMiddle) ROS_INFO("Grab Middle = TRUE");
+    else ROS_INFO("Grab Middle = FALSE");
+
+    if (state_msg_.LeftCompliance) ROS_INFO("Left Compliance = TRUE");
+    else ROS_INFO("Left Compliance = FALSE");
+
+    if (state_msg_.RightCompliance) ROS_INFO("Right Compliance = TRUE");
+    else ROS_INFO("Right Compliance = FALSE");
 
     state_pub_.publish(state_msg_);
 
