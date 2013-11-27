@@ -408,9 +408,9 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     leftArmCompliantBox_->setEnabled(false);
     rightArmCompliantBox_->setEnabled(false);
-    userBothRadioButton_->setEnabled(false);
-    userLeftRadioButton_->setEnabled(false);
-    userRightRadioButton_->setEnabled(false);
+    //userBothRadioButton_->setEnabled(false);
+    //userLeftRadioButton_->setEnabled(false);
+    //userRightRadioButton_->setEnabled(false);
     rightLeverRadioButton_->setEnabled(false);
     grabMiddleBox_->setEnabled(false);
     pegsRadioButton_->setEnabled(false);
