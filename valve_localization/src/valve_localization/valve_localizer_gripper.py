@@ -277,7 +277,8 @@ class ValveLocalizer:
 
         self.valve_status.grab_middle = data.GrabMiddle
 
-	self.valve_status.fixed_turn = data.FixedTurn
+        self.valve_status.fixed_turn = data.FixedTurn
+        self.valve_status.ik_seed = data.IkSeed
 
         data.State = "NONE"
 
@@ -505,7 +506,8 @@ class ValveLocalizer:
         req.Request.LeftCompliance = self.valve_status.left_compliance
         req.Request.RightCompliance = self.valve_status.right_compliance
         req.Request.GrabMiddle = self.valve_status.grab_middle
-	req.Request.FixedTurn = self.valve_status.fixed_turn
+        req.Request.FixedTurn = self.valve_status.fixed_turn
+        req.Request.IkSeed = self.valve_status.ik_seed
 
         if self.valve_status.end_effector == self.valve_status.GRIPPER:
             req.Request.useLeft = self.left_gripper.visible

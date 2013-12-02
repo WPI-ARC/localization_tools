@@ -124,7 +124,6 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(fixedTurnBox_, SIGNAL(toggled(bool)),
             this,          SLOT(handleFixedTurn(bool)));
 
-
     //================================
     //     Valve Radius Layout
     //================================
@@ -161,6 +160,20 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     connect(planInBoxBox_, SIGNAL(toggled(bool)),
             this,          SLOT(handlePlanInBox(bool)));
 
+    //================================
+    //     Use Global IK Seed
+    //================================
+
+    QLabel* ikseedText = new QLabel;
+    ikseedText->setText("Global IK Seed? ");
+    bottomLayout->addWidget(ikseedText, 4, 0, Qt::AlignRight);
+
+    ikseedTurnBox_ = new QCheckBox;
+    ikseedTurnBox_->setChecked(true);
+    bottomLayout->addWidget(ikseedTurnBox_, 4, 1, Qt::AlignCenter);
+
+    connect(ikseedTurnBox_, SIGNAL(toggled(bool)),
+            this,          SLOT(handleIkSeed(bool)));
 
     //================================
     //     Turn Direction Layout

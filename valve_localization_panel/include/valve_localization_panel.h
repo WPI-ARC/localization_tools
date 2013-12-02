@@ -203,6 +203,8 @@ protected Q_SLOTS:
 
   void handleFixedTurn(bool isChecked);
 
+  void handleIkSeed(bool isChecked);
+
 private:
 
     //Ros Node
@@ -267,6 +269,7 @@ private:
     QRadioButton* pegsRadioButton_;
 
     QCheckBox* fixedTurnBox_;
+    QCheckBox* ikseedTurnBox_;
 
     QCheckBox* leftArmCompliantBox_;
     QCheckBox* rightArmCompliantBox_;

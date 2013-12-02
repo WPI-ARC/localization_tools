@@ -142,6 +142,9 @@ void HuboValveLocalizationWidget::publishState(void){
     if (state_msg_.FixedTurn) ROS_INFO("Fixed Turn = TRUE");
     else ROS_INFO("Fixed Turn = FALSE");
 
+    if (state_msg_.IkSeed) ROS_INFO("Ik Seed = TRUE");
+    else ROS_INFO("Ik Seed = FALSE");
+
     if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::ROUND) ROS_INFO("Valve Type = ROUND");
     else if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::LEFT_LEVER) ROS_INFO("Valve Type = LEFT_LEVER");
     else if (state_msg_.ValveType == valve_localization_panel_msgs::PanelUpdate::RIGHT_LEVER) ROS_INFO("Valve Type = RIGHT_LEVER");

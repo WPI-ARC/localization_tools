@@ -54,3 +54,6 @@ bool GrabMiddle
 
 ## Fixed Turn Amount
 bool FixedTurn
+
+## Set global Ik Seed
+bool IkSeed
