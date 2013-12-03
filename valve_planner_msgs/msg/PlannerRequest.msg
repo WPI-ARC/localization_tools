@@ -1,5 +1,6 @@
 std_msgs/Header header
 geometry_msgs/PoseStamped ValvePose
+int64 ID
 float64 ValveSize
 float64 TurnAmount
 string ValveType
