@@ -169,7 +169,6 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     bottomLayout->addWidget(ikseedText, 4, 0, Qt::AlignRight);
 
     ikseedTurnBox_ = new QCheckBox;
-    ikseedTurnBox_->setChecked(true);
     bottomLayout->addWidget(ikseedTurnBox_, 4, 1, Qt::AlignCenter);
 
     connect(ikseedTurnBox_, SIGNAL(toggled(bool)),
@@ -408,7 +407,7 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     bottomLayout->setRowMinimumHeight(4, 40);
 
     //Defaults
-    counterClockwiseRadioButton_->setChecked(true);
+    clockwiseRadioButton_->setChecked(true);
     roundRadioButton_->setChecked(true);
     plannerBothRadioButton_->setChecked(true);
     grippersRadioButton_->setChecked(true);
@@ -429,6 +428,13 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
 
     connect(jimsButton_, SIGNAL(clicked(void)),
             this,        SLOT(handleJointLimitDisrupt(void)));
+
+    resetPositionButton_ = new QPushButton();
+    resetPositionButton_->setText("Reset Position");
+    bottomLayout->addWidget(resetPositionButton_, 10, 2, Qt::AlignCenter);
+
+    connect(resetPositionButton_, SIGNAL(clicked(void)),
+            this,        SLOT(handleResetPosition(void)));
 
     //*****************************
     // Enable or Disable Buttons

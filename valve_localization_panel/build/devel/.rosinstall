@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/nick/Dropbox/ROS_Workspace/catkin_ws/src/localization_tools/valve_localization_panel/build/devel/setup.sh

@@ -200,6 +200,7 @@ protected Q_SLOTS:
   void handleGrabMiddle(bool isChecked);
 
   void handleJointLimitDisrupt(void);
+  void handleResetPosition(void);
 
   void handleFixedTurn(bool isChecked);
 
@@ -277,6 +278,7 @@ private:
     QCheckBox* grabMiddleBox_;
 
     QPushButton* jimsButton_;
+    QPushButton* resetPositionButton_;
 
 };
 

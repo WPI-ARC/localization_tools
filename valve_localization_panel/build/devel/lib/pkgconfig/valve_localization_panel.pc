@@ -1,0 +1,8 @@
+prefix=/home/nick/Dropbox/ROS_Workspace/catkin_ws/src/localization_tools/valve_localization_panel/build/devel
+
+Name: valve_localization_panel
+Description: Description of valve_localization_panel
+Version: 0.0.0
+Cflags: -I/home/nick/Dropbox/ROS_Workspace/catkin_ws/src/localization_tools/valve_localization_panel/include
+Libs: -L/home/nick/Dropbox/ROS_Workspace/catkin_ws/src/localization_tools/valve_localization_panel/build/devel/lib -lvalve_localization_panel
+Requires: roscpp rospy message_runtime valve_localization_panel_msgs

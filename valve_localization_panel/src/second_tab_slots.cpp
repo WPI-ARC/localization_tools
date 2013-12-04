@@ -80,19 +80,19 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
             userLeftRadioButton_->setEnabled(false);
             userRightRadioButton_->setEnabled(false);
             plannerRightRadioButton_->setChecked(true);
-            counterClockwiseRadioButton_->setChecked(true);
+            clockwiseRadioButton_->setChecked(true);
         } else {
             plannerBothRadioButton_->setEnabled(true);
             userBothRadioButton_->setEnabled(true);
             userLeftRadioButton_->setEnabled(true);
             userRightRadioButton_->setEnabled(true);
             plannerBothRadioButton_->setChecked(true);
-            counterClockwiseRadioButton_->setChecked(true);
+            clockwiseRadioButton_->setChecked(true);
         }
 
         state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::ROUND;
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH;
-        state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::COUNTER_CLOCKWISE;
+        state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::CLOCKWISE;
 
 
         publishState(); }
@@ -300,5 +300,13 @@ void HuboValveLocalizationWidget::handleJointLimitDisrupt(void)
     }
 }
 
+void HuboValveLocalizationWidget::handleResetPosition(void)
+{
+
+    state_msg_.ResetPosition = true;
+    publishState();
+    state_msg_.ResetPosition = false;
+
+}
 
 }

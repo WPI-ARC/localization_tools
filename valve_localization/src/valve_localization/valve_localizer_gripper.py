@@ -236,6 +236,8 @@ class ValveLocalizer:
         print "Turn Amount = " + str(data.TurnAmount)
         print "Valve Radius = " + str(data.ValveRadius)
 
+        if data.ResetPosition:
+            self.valve_status.pose_stamped = deepcopy(self.valve_status.default_pose_stamped)
 
         self.valve_status.radius = data.ValveRadius / 100
         self.valve_status.turn_amount = data.TurnAmount

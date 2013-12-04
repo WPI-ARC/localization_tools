@@ -99,7 +99,7 @@ HuboValveLocalizationWidget::HuboValveLocalizationWidget(QWidget *parent) : QTab
 
     //Setup the state message
     state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
-    state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::COUNTER_CLOCKWISE;
+    state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::CLOCKWISE;
     state_msg_.EndEffector = valve_localization_panel_msgs::PanelUpdate::GRIPPER;
     state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH;
     state_msg_.TurnAmount = 30;
@@ -107,6 +107,7 @@ HuboValveLocalizationWidget::HuboValveLocalizationWidget(QWidget *parent) : QTab
     state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::ROUND;
     state_msg_.FixedTurn = true;
     state_msg_.PlanInBox = true;
+    state_msg_.IkSeed = false;
 
     //The First tab controls data about the robots' state
     initializeMainTab();

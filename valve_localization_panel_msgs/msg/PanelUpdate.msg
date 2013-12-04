@@ -57,3 +57,6 @@ bool FixedTurn
 
 ## Set global Ik Seed
 bool IkSeed
+
+## Position reset
+bool ResetPosition

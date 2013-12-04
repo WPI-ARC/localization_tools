@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: valve_localization_panel
+Description: Description of valve_localization_panel
+Version: 0.0.0
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -lvalve_localization_panel
+Requires: roscpp rospy message_runtime valve_localization_panel_msgs

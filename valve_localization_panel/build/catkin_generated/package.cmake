@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "valve_localization_panel")
+set(valve_localization_panel_MAINTAINER "Nicholas Alunni <nick.alunni@gmail.com>")
+set(valve_localization_panel_DEPRECATED "")
+set(valve_localization_panel_VERSION "0.0.0")
+set(valve_localization_panel_BUILD_DEPENDS "rospy" "roscpp" "rviz" "valve_localization_panel_msgs" "message_generation")
+set(valve_localization_panel_RUN_DEPENDS "rospy" "roscpp" "rviz" "valve_localization_panel_msgs" "message_runtime")
+set(valve_localization_panel_BUILDTOOL_DEPENDS "catkin")
