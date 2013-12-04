@@ -170,18 +170,18 @@ void HuboValveLocalizationWidget::initializeMainTab()
     plan_finish_button_ ->setMinimumSize(minimumButtonSize);
 
     plan_grasp_button_ = new QPushButton;
-    plan_grasp_button_ ->setText("TELEOP ENABLED");
+    plan_grasp_button_ ->setText("TELEOP START");
     planButtonsLayout->addWidget(plan_grasp_button_, 0, Qt::AlignCenter);
     plan_grasp_button_ ->setMinimumSize(minimumButtonSize);
 
-    plan_grasp_button_->setEnabled(false);
+    plan_grasp_button_->setEnabled(true);
 
     plan_ungrasp_button_ = new QPushButton;
-    plan_ungrasp_button_ ->setText("TELEOP DISABLE");
+    plan_ungrasp_button_ ->setText("TELEOP STOP");
     planButtonsLayout->addWidget(plan_ungrasp_button_, 0, Qt::AlignCenter);
     plan_ungrasp_button_ ->setMinimumSize(minimumButtonSize);
     
-    plan_ungrasp_button_->setEnabled(false);
+    plan_ungrasp_button_->setEnabled(true);
 
     preview_button_ = new QPushButton;
     preview_button_ ->setText("Preview");

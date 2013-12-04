@@ -136,6 +136,8 @@ void HuboValveLocalizationWidget::publishState(void){
     else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PLAN_FINISH) ROS_INFO("Command = PLAN_FINISH");
     else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::PREVIEW) ROS_INFO("Command = PREVIEW");
     else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::EXECUTE) ROS_INFO("Command = EXECUTE");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::TELEOP_START) ROS_INFO("Command = TELEOP_START");
+    else if (state_msg_.Command == valve_localization_panel_msgs::PanelUpdate::TELEOP_STOP) ROS_INFO("Command = TELEOP_STOP");
     else ROS_WARN("COMMAND = ???? UNKNOWN ????");
 
     ROS_INFO("Radius = %5.2f", state_msg_.ValveRadius);

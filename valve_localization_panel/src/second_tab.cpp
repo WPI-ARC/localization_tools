@@ -139,7 +139,7 @@ void HuboValveLocalizationWidget::initializeSecondTab() {
     bottomLayout->addWidget(valveRadiusSpinBox_, 2, 1, Qt::AlignCenter);
 
     QLabel* cmText = new QLabel;
-    cmText->setText(" cm");
+    cmText->setText(" cm (LG: 23, SM: 11)");
     bottomLayout->addWidget(cmText, 2, 2, Qt::AlignLeft);
 
     connect(valveRadiusSpinBox_, SIGNAL(valueChanged(int)),

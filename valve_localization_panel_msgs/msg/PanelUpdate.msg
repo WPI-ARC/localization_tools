@@ -10,6 +10,8 @@ uint8 PLAN_UNGRASP=3
 uint8 PLAN_FINISH=4
 uint8 PREVIEW=5
 uint8 EXECUTE=6
+uint8 TELEOP_START=7
+uint8 TELEOP_STOP=8
 uint8 NO_COMMAND=15
 
 string State

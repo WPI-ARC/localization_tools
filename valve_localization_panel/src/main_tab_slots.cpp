@@ -55,8 +55,8 @@ void HuboValveLocalizationWidget::handlePlanGetready(void){
 }
 
 void HuboValveLocalizationWidget::handlePlanGrasp(void){
-    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::PLAN_GRASP;
-    informationCurrent_->setText("Planning Grasp ... ");
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::TELEOP_START;
+    informationCurrent_->setText("Starting Teleoperation ... ");
     publishState();
 }
 
@@ -67,8 +67,8 @@ void HuboValveLocalizationWidget::handlePlanTurning(void){
 }
 
 void HuboValveLocalizationWidget::handlePlanUngrasp(void){
-    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::PLAN_UNGRASP;
-    informationCurrent_->setText("Planning UnGrasp ... ");
+    state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::TELEOP_STOP;
+    informationCurrent_->setText("Stopping Teleoperation ... ");
     publishState();    }
 
 void HuboValveLocalizationWidget::handlePlanFinish(void){

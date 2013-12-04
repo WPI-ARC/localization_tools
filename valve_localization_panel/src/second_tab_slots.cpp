@@ -116,10 +116,10 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
         //turnAmountSpinBox_->setEnabled(false);
         //valveRadiusSpinBox_->setEnabled(false);
 
-        plannerRightRadioButton_->setChecked(true);
+        plannerLeftRadioButton_->setChecked(true);
 
         state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::LEFT_LEVER;
-        state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_RIGHT;
+        state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
 
         state_msg_.ResetPosition = true;
         publishState();
@@ -251,6 +251,27 @@ void HuboValveLocalizationWidget::handleRightCompliant(bool isChecked){
 }
 
 void HuboValveLocalizationWidget::handlePlanInBox(bool isChecked){
+
+    if(isChecked) {
+        QPalette Pal(palette());
+        // set black background
+        Pal.setColor(QPalette::Background, Qt::color0);
+        mainTab->setAutoFillBackground(true);
+        mainTab->setPalette(Pal);
+        secondTab->setAutoFillBackground(true);
+        secondTab->setPalette(Pal);
+    } else {
+        QPalette Pal(palette());
+        // set black background
+        QColor backgroundColor;
+        backgroundColor.setRgb(255,102,102,255);
+        Pal.setColor(QPalette::Background, backgroundColor);
+        mainTab->setAutoFillBackground(true);
+        mainTab->setPalette(Pal);
+        secondTab->setAutoFillBackground(true);
+        secondTab->setPalette(Pal);
+    }
+
     state_msg_.Command = valve_localization_panel_msgs::PanelUpdate::NO_COMMAND;
     state_msg_.PlanInBox = isChecked;
     publishState();

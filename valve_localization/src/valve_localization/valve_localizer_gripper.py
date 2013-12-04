@@ -88,6 +88,8 @@ class ValveStatus:
     FINISH = "END"
     PREVIEW = "PREVIEW"
     EXECUTE = "EXECUTE"
+    TELEOP_START = "TELEOP_START"
+    TELEOP_STOP = "TELEOP_STOP"
     EXECUTE_STORED = "EXECUTESTORED"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
@@ -240,15 +242,15 @@ class ValveLocalizer:
 
 
     def updateFromPanel(self, data):
-        print "-------------------"
-        print "GOT AN UPDATE"
-        print "Command = " + str(data.Command)
-        print "Hands = " + data.Hands
-        print "Type = " + data.ValveType
-        print "Effector = " + data.EndEffector
-        print "Direction = " + data.Direction
-        print "Turn Amount = " + str(data.TurnAmount)
-        print "Valve Radius = " + str(data.ValveRadius)
+        #print "-------------------"
+        #print "GOT AN UPDATE"
+        #print "Command = " + str(data.Command)
+        #print "Hands = " + data.Hands
+        #print "Type = " + data.ValveType
+        #print "Effector = " + data.EndEffector
+        #print "Direction = " + data.Direction
+        #print "Turn Amount = " + str(data.TurnAmount)
+        #print "Valve Radius = " + str(data.ValveRadius)
 
         if data.ResetPosition:
             if (data.ValveType == PanelUpdate.ROUND):
@@ -304,7 +306,8 @@ class ValveLocalizer:
         data.State = "NONE"
 
         if (data.Command == 15):
-            print "No Command"
+            pass
+            #print "No Command"
         elif (data.Command == 0): 
             self.valve_status.color = "SOLID"
             self.call_planner(self.valve_status.GETREADY) 
@@ -349,6 +352,16 @@ class ValveLocalizer:
                     data.State = "TURNING"
                 elif self.valve_status.lastPlan == self.valve_status.FINISH:
                     data.State = "IDLE"
+            data.Info = self.valve_status.lastReturn
+            updatePublisher.publish(data)
+        elif (data.Command == 7): 
+            self.valve_status.color = "SOLID"
+            self.call_planner(self.valve_status.TELEOP_START) 
+            data.Info = self.valve_status.lastReturn
+            updatePublisher.publish(data)
+        elif (data.Command == 8): 
+            self.valve_status.color = "SOLID"
+            self.call_planner(self.valve_status.TELEOP_STOP) 
             data.Info = self.valve_status.lastReturn
             updatePublisher.publish(data)
         else: 

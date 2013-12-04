@@ -88,6 +88,8 @@
 #include <QSpinBox>
 #include <QGridLayout>
 #include <QButtonGroup>
+#include <QPalette>
+#include <QColor>
 
 //Namespace for the project/plugin
 namespace Valve_Localization
