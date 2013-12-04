@@ -105,11 +105,25 @@ class ValveStatus:
         self.default_pose_stamped.pose.position.x = .464
         self.default_pose_stamped.pose.position.y = .09
         self.default_pose_stamped.pose.position.z = .05
-
         self.default_pose_stamped.pose.orientation.x = 0.0
         self.default_pose_stamped.pose.orientation.y = 0.0
         self.default_pose_stamped.pose.orientation.z = 0.0
         self.default_pose_stamped.pose.orientation.w = 1.0
+
+        self.default_lever_pose_stamped = PoseStamped()
+        self.default_lever_pose_stamped.header.frame_id = "/Body_TSY"
+        #self.default_lever_pose_stamped.pose.position.x = .464
+        #self.default_lever_pose_stamped.pose.position.y = .00
+        #self.default_lever_pose_stamped.pose.position.z = -.036
+
+        self.default_lever_pose_stamped.pose.position.x = .464
+        self.default_lever_pose_stamped.pose.position.y = .09
+        self.default_lever_pose_stamped.pose.position.z = .05
+        self.default_lever_pose_stamped.pose.orientation.x = -.707
+        self.default_lever_pose_stamped.pose.orientation.y = 0.0
+        self.default_lever_pose_stamped.pose.orientation.z = 0.0
+        self.default_lever_pose_stamped.pose.orientation.w = .707
+
         self.session_pose_stamped = deepcopy(self.default_pose_stamped)
         self.pose_stamped = deepcopy(self.default_pose_stamped)
         self.icp_status = self.UNSNAPPED
@@ -237,7 +251,12 @@ class ValveLocalizer:
         print "Valve Radius = " + str(data.ValveRadius)
 
         if data.ResetPosition:
-            self.valve_status.pose_stamped = deepcopy(self.valve_status.default_pose_stamped)
+            if (data.ValveType == PanelUpdate.ROUND):
+                self.valve_status.pose_stamped = deepcopy(self.valve_status.default_pose_stamped)
+            elif (data.ValveType == PanelUpdate.LEFT_LEVER):
+                self.valve_status.pose_stamped = deepcopy(self.valve_status.default_lever_pose_stamped)
+            elif (data.ValveType == PanelUpdate.RIGHT_LEVER):
+                self.valve_status.pose_stamped = deepcopy(self.valve_status.default_lever_pose_stamped)
 
         self.valve_status.radius = data.ValveRadius / 100
         self.valve_status.turn_amount = data.TurnAmount

@@ -95,7 +95,10 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
         state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::CLOCKWISE;
 
 
-        publishState(); }
+        state_msg_.ResetPosition = true;
+        publishState();
+        state_msg_.ResetPosition = false;
+    }
 }
 
 void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
@@ -118,7 +121,11 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
         state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::LEFT_LEVER;
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_RIGHT;
 
-        publishState(); }
+        state_msg_.ResetPosition = true;
+        publishState();
+        state_msg_.ResetPosition = false;
+
+    }
 }
 
 void HuboValveLocalizationWidget::handleRightLever(bool isChecked) {
@@ -141,7 +148,9 @@ void HuboValveLocalizationWidget::handleRightLever(bool isChecked) {
         //state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::RIGHT_LEVER;
         //state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
 
+        //state_msg_.ResetPosition = true;
         //publishState();
+        //state_msg_.ResetPosition = false;
     }
 }
 
