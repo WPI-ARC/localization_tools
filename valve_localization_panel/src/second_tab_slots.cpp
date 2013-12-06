@@ -73,7 +73,7 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
     if (isChecked){
 
         turnAmountSpinBox_->setEnabled(true);
-
+        valveRadiusSpinBox_->setValue(23);
         if (grabMiddleBox_->isChecked()) {
             plannerBothRadioButton_->setEnabled(false);
             userBothRadioButton_->setEnabled(false);
@@ -90,6 +90,7 @@ void HuboValveLocalizationWidget::handleRound(bool isChecked) {
             clockwiseRadioButton_->setChecked(true);
         }
 
+        state_msg_.ValveRadius = 23;
         state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::ROUND;
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_BOTH;
         state_msg_.Direction = valve_localization_panel_msgs::PanelUpdate::CLOCKWISE;
@@ -107,6 +108,7 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
 
     if (isChecked){
 
+        valveRadiusSpinBox_->setValue(23);
         //clockwiseRadioButton_->setEnabled(false);
         //counterClockwiseRadioButton_->setEnabled(false);
         plannerBothRadioButton_->setEnabled(false);
@@ -118,6 +120,7 @@ void HuboValveLocalizationWidget::handleLeftLever(bool isChecked) {
 
         plannerLeftRadioButton_->setChecked(true);
 
+        state_msg_.ValveRadius = 23;
         state_msg_.ValveType = valve_localization_panel_msgs::PanelUpdate::LEFT_LEVER;
         state_msg_.Hands = valve_localization_panel_msgs::PanelUpdate::PLANNER_LEFT;
 

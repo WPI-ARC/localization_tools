@@ -190,6 +190,7 @@ void HuboValveLocalizationWidget::updateCB(const valve_localization_panel_msgs::
     if (msg->State != "NONE") {
         robotStateCurrent_->setText(msg->State.c_str()); }
 
+    positionCurrent_->setText(msg->Position.c_str());
 
     if (msg->Info.length() <= 150) {
         informationCurrent_->setText(msg->Info.c_str());

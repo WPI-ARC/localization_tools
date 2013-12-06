@@ -16,6 +16,8 @@ uint8 NO_COMMAND=15
 
 string State
 string Info
+string Position
+
 float64 ValveRadius
 float64 TurnAmount
 

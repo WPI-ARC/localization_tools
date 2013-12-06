@@ -61,6 +61,7 @@ void HuboValveLocalizationWidget::initializeMainTab()
     QVBoxLayout* topLayout = new QVBoxLayout;
 
     QHBoxLayout* stateLayout = new QHBoxLayout;
+    QHBoxLayout* positionLayout = new QHBoxLayout;
     QHBoxLayout* buttonLayout = new QHBoxLayout;
     QHBoxLayout* informationLayout = new QHBoxLayout;
 
@@ -74,6 +75,7 @@ void HuboValveLocalizationWidget::initializeMainTab()
     QGroupBox* topGroupBox = new QGroupBox;
 
     QGroupBox* stateGroupBox = new QGroupBox;
+    QGroupBox* positionGroupBox = new QGroupBox;
     QGroupBox* buttonGroupBox = new QGroupBox;
     QGroupBox* informationGroupBox = new QGroupBox;
 
@@ -94,6 +96,10 @@ void HuboValveLocalizationWidget::initializeMainTab()
     stateGroupBox->setStyleSheet(groupStyleSheet);
     stateGroupBox->setTitle("Robot State");
     stateGroupBox->setLayout(stateLayout);
+
+    positionGroupBox->setStyleSheet(groupStyleSheet);
+    positionGroupBox->setTitle("Marker Position");
+    positionGroupBox->setLayout(positionLayout);
 
     buttonGroupBox->setStyleSheet(groupStyleSheet);
     buttonGroupBox->setTitle("Planner Buttons");
@@ -125,6 +131,7 @@ void HuboValveLocalizationWidget::initializeMainTab()
     //masterLayout->addWidget(bottomGroupBox);
 
     topLayout->addWidget(stateGroupBox);
+    topLayout->addWidget(positionGroupBox);
     topLayout->addWidget(buttonGroupBox);
     topLayout->addWidget(informationGroupBox);
 
@@ -146,6 +153,16 @@ void HuboValveLocalizationWidget::initializeMainTab()
     robotStateCurrent_->setText("IDLE");
     robotStateCurrent_->setStyleSheet("QLabel { color : blue; font: bold 20px;}");
     stateLayout->addWidget(robotStateCurrent_, 0, Qt::AlignLeft);
+
+    //================================
+    //     Robot State Layout
+    //================================
+
+    positionCurrent_ = new QLabel;
+    positionCurrent_->setText("(?.??, ?.??, ?.??)");
+    positionCurrent_->setStyleSheet("QLabel { color : black; font: bold 20px;}");
+    positionLayout->addWidget(positionCurrent_, 0, Qt::AlignCenter);
+
 
     //================================
     //     Buttons Layout

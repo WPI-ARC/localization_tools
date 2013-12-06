@@ -149,7 +149,9 @@ class ValveStatus:
         self.right_compliant = False
         self.plan_in_box = True
         self.grab_middle = False
-	self.fixed_turn = True
+        self.fixed_turn = True
+        self.last_state = "NONE"
+        self.last_info = "No Information"
 
 
 
@@ -367,6 +369,9 @@ class ValveLocalizer:
         else: 
             print "I Don't know what command I was just sent ..."
 
+        self.valve_status.last_state = data.State
+        self.valve_status.last_info = data.Info
+
         self.populate_valve_menu()
 
 
@@ -417,6 +422,16 @@ class ValveLocalizer:
             alignment_marker = self.make_valve_imarker(self.valve_status.pose_stamped)
             self.server.insert(alignment_marker, self.alignment_feedback_cb)
             self.menu_handler.apply(self.server, "valve_alignment")
+
+        data = PanelUpdate()
+
+        data.Info = self.valve_status.last_info
+        data.State = self.valve_status.last_state
+        data.Position = "( " + str(round(self.valve_status.pose_stamped.pose.position.x, 2)) + " , " + \
+                               str(round(self.valve_status.pose_stamped.pose.position.y, 2)) + " , " + \
+                               str(round(self.valve_status.pose_stamped.pose.position.z, 2)) + " ) "
+
+        updatePublisher.publish(data)
 
         if self.valve_status.end_effector == self.valve_status.GRIPPER:
 

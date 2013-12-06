@@ -227,6 +227,7 @@ private:
 
     QLabel* robotStateCurrent_;
     QLabel* informationCurrent_;
+    QLabel* positionCurrent_;
 
     QPushButton* plan_getready_button_;
     QPushButton* plan_grasp_button_;
